@@ -1,0 +1,15 @@
+# Claude Code - Local Settings
+# Configurações pessoais não devem ser versionadas
+
+settings.local.json
+*.local.json
+
+# Logs e cache do Claude
+.cache/
+logs/
+*.log
+
+# Temporários
+tmp/
+temp/
+*.tmp

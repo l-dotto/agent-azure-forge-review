@@ -1,0 +1,69 @@
+{
+  "$schema": "https://claude.ai/schemas/settings-v1.json",
+  "permissions": {
+    "allow": [
+      "mcp__serena__find_symbol",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__find_file",
+      "mcp__serena__list_dir",
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__find_referencing_symbols",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(git add:*)",
+      "Bash(./gradlew:*)",
+      "Bash(gradle:*)",
+      "Bash(java:*)",
+      "Bash(npm:*)",
+      "Bash(yarn:*)",
+      "Bash(pnpm:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(open:*)"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(terraform apply:*)",
+      "Bash(terraform destroy:*)"
+    ]
+  },
+  "hooks": {
+    "pre-commit": {
+      "description": "Executa validações antes de permitir commits",
+      "enabled": true,
+      "commands": [
+        {
+          "name": "check-branch",
+          "description": "Verifica se não está na branch master/main",
+          "command": "bash -c 'BRANCH=$(git branch --show-current); if [[ \"$BRANCH\" == \"master\" || \"$BRANCH\" == \"main\" ]]; then echo \"❌ ERRO: Não é permitido commitar direto em master/main. Crie uma feature branch.\"; exit 1; fi'"
+        },
+        {
+          "name": "check-secrets",
+          "description": "Verifica se há secrets no código",
+          "command": "bash -c 'if git diff --cached | grep -iE \"(api_key|secret|password|token|private_key|aws_access)\"; then echo \"⚠️  AVISO: Possível secret detectado. Revise antes de commitar.\"; exit 1; fi'"
+        }
+      ]
+    },
+    "pre-push": {
+      "description": "Executa validações antes de push",
+      "enabled": true,
+      "commands": [
+        {
+          "name": "check-commit-messages",
+          "description": "Verifica se commits não mencionam AI",
+          "command": "bash -c 'if git log origin/$(git branch --show-current)..HEAD --format=%B | grep -iE \"(claude|anthropic|ai generated|generated with)\"; then echo \"❌ ERRO: Commit menciona AI/Claude. Reescreva as mensagens.\"; exit 1; fi'"
+        }
+      ]
+    }
+  }
+}
