@@ -21,7 +21,6 @@ Total: 9/26 tasks concluídas (35%)
 ```
 
 ---
-
 ## 🎯 VISÃO EXECUTIVA
 
 ### Objetivo

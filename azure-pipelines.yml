@@ -104,14 +104,14 @@ stages:
             displayName: 'Install Dependencies'
 
           - script: |
-              echo "Design review will be implemented in Phase 3"
-              echo "Agent: Atlas"
-              echo "Focus: UX, accessibility (WCAG), design systems"
-              mkdir -p findings
-              echo '{"agent": "atlas", "findings": [], "status": "not_implemented"}' > findings/design.json
-            displayName: 'Run Design Review'
+              python scripts/agents/run_design_review.py \
+                --repo . \
+                --target-branch origin/$(System.PullRequest.TargetBranch) \
+                --output findings/design.json
+            displayName: 'Run Design Review (Atlas)'
             env:
               ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)
+              LLM_PROVIDER: $(LLM_PROVIDER)
 
           - publish: findings/design.json
             artifact: design-findings
@@ -132,14 +132,14 @@ stages:
             displayName: 'Install Dependencies'
 
           - script: |
-              echo "Code quality review will be implemented in Phase 3"
-              echo "Agent: Forge"
-              echo "Focus: Architecture, maintainability, performance"
-              mkdir -p findings
-              echo '{"agent": "forge", "findings": [], "status": "not_implemented"}' > findings/code.json
-            displayName: 'Run Code Quality Review'
+              python scripts/agents/run_code_review.py \
+                --repo . \
+                --target-branch origin/$(System.PullRequest.TargetBranch) \
+                --output findings/code.json
+            displayName: 'Run Code Quality Review (Forge)'
             env:
               ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)
+              LLM_PROVIDER: $(LLM_PROVIDER)
 
           - publish: findings/code.json
             artifact: code-findings
