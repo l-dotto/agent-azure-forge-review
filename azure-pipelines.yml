@@ -89,37 +89,14 @@ stages:
             artifact: security-findings
             displayName: 'Publish Security Findings'
 
-      - job: DesignReview
-        displayName: 'Design Review (Atlas)'
-        dependsOn: SecurityReview
-        steps:
-          - task: UsePythonVersion@0
-            displayName: 'Use Python $(PYTHON_VERSION)'
-            inputs:
-              versionSpec: '$(PYTHON_VERSION)'
-
-          - script: |
-              python -m pip install --upgrade pip
-              pip install -r requirements.txt
-            displayName: 'Install Dependencies'
-
-          - script: |
-              python scripts/agents/run_design_review.py \
-                --repo . \
-                --target-branch origin/$(System.PullRequest.TargetBranch) \
-                --output findings/design.json
-            displayName: 'Run Design Review (Atlas)'
-            env:
-              ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)
-              LLM_PROVIDER: $(LLM_PROVIDER)
-
-          - publish: findings/design.json
-            artifact: design-findings
-            displayName: 'Publish Design Findings'
+      # Design Review temporarily disabled (no frontend code yet)
+      # - job: DesignReview
+      #   displayName: 'Design Review (Atlas)'
+      #   dependsOn: SecurityReview
 
       - job: CodeQualityReview
         displayName: 'Code Quality Review (Forge)'
-        dependsOn: DesignReview
+        dependsOn: SecurityReview
         steps:
           - task: UsePythonVersion@0
             displayName: 'Use Python $(PYTHON_VERSION)'
