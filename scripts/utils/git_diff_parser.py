@@ -8,7 +8,7 @@ Extracts and sanitizes git diffs for pull request analysis.
 import os
 import re
 import subprocess
-from typing import Optional, Tuple
+from typing import Tuple
 from dataclasses import dataclass
 
 
@@ -57,7 +57,7 @@ class GitDiffParser:
     def _validate_git_repo(self) -> None:
         """Validate that the path is a git repository"""
         try:
-            result = subprocess.run(
+            subprocess.run(
                 ["git", "rev-parse", "--git-dir"],
                 cwd=self.repo_path,
                 capture_output=True,

@@ -7,7 +7,7 @@ Supports multiple LLM providers: Anthropic, OpenAI, Google Gemini, Azure OpenAI
 
 import os
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict
 from dataclasses import dataclass
 from enum import Enum
 
@@ -250,14 +250,14 @@ class GeminiClient(BaseLLMClient):
         if system_prompt:
             full_prompt = f"{system_prompt}\n\n{prompt}"
 
-        model = self.genai.GenerativeModel(model_name)
+        gemini_model = self.genai.GenerativeModel(model_name)
 
         generation_config = {
             'temperature': temperature,
             'max_output_tokens': max_tokens,
         }
 
-        response = model.generate_content(
+        response = gemini_model.generate_content(
             full_prompt,
             generation_config=generation_config
         )

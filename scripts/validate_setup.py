@@ -8,13 +8,11 @@ Validates that all required configuration and dependencies are properly set up.
 import os
 import sys
 import subprocess
-from pathlib import Path
 from typing import List, Tuple
 
 try:
     from rich.console import Console
     from rich.table import Table
-    from rich import print as rprint
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
@@ -172,7 +170,7 @@ def check_anthropic_api_key() -> Tuple[bool, str]:
 
         # Simple validation - just check if we can import and create client
         from anthropic import Anthropic
-        client = Anthropic(api_key=api_key)
+        _ = Anthropic(api_key=api_key)
 
         return True, "API key format valid"
     except ImportError:

@@ -3,10 +3,7 @@
 Unit tests for Security Review Runner
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock, mock_open
-from pathlib import Path
-import json
+from unittest.mock import Mock, patch, mock_open
 
 from scripts.agents.run_security_review import SecurityReviewRunner
 from scripts.utils.git_diff_parser import DiffResult
@@ -95,19 +92,22 @@ Analyze the code for vulnerabilities.
     @patch('scripts.agents.run_security_review.create_llm_client')
     @patch('scripts.agents.run_security_review.subprocess.run')
     def test_execute_git_command_failure(self, mock_run, mock_create_client):
-        """Test handling failed git command"""
+        """Test handling failed git command and whitelist validation"""
         mock_client = Mock()
         mock_client.get_default_model.return_value = "test-model"
         mock_create_client.return_value = mock_client
 
         runner = SecurityReviewRunner()
 
-        # Mock failed git command
+        # Test 1: Command not in whitelist
+        result = runner._execute_git_command("git invalid-command")
+        assert "invalid command" in result
+        assert "not in whitelist" in result
+
+        # Test 2: Valid command that fails execution
         import subprocess
         mock_run.side_effect = subprocess.CalledProcessError(1, 'git')
-
-        result = runner._execute_git_command("git invalid-command")
-
+        result = runner._execute_git_command("git status")
         assert "command failed" in result
 
     @patch('scripts.agents.run_security_review.create_llm_client')
@@ -149,7 +149,8 @@ git diff --merge-base origin/HEAD
         mock_client = Mock()
         mock_client.get_default_model.return_value = "test-model"
         mock_client.generate.return_value = LLMResponse(
-            content="# Vuln 1: XSS: `app.py:42`\n\n* Severity: High\n* Description: XSS\n* Exploit Scenario: Attack\n* Recommendation: Fix",
+            content="# Vuln 1: XSS: `app.py:42`\n\n* Severity: High\n* Description: XSS" +
+            "\n* Exploit Scenario: Attack\n* Recommendation: Fix",
             model="test-model",
             usage={"input_tokens": 100, "output_tokens": 50},
             provider="anthropic"
@@ -172,7 +173,8 @@ git diff --merge-base origin/HEAD
         mock_client = Mock()
         mock_client.get_default_model.return_value = "test-model"
         mock_client.generate.return_value = LLMResponse(
-            content="# Vuln 1: XSS: `app.py:42`\n\n* Severity: High\n* Description: XSS\n* Exploit Scenario: Attack\n* Recommendation: Fix",
+            content="# Vuln 1: XSS: `app.py:42`\n\n* Severity: High\n* Description: XSS" +
+            "\n* Exploit Scenario: Attack\n* Recommendation: Fix",
             model="test-model",
             usage={"input_tokens": 100, "output_tokens": 50},
             provider="anthropic"

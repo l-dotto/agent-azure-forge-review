@@ -4,7 +4,7 @@ Unit tests for Git Diff Parser
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import subprocess
 import os
 
@@ -271,7 +271,7 @@ class TestGetPRDiffFromEnv:
         mock_parser_class.return_value = mock_parser
 
         with patch.dict(os.environ, {}, clear=True):
-            result = get_pr_diff_from_env()
+            _ = get_pr_diff_from_env()
 
             mock_parser_class.assert_called_once_with(repo_path='.')
             mock_parser.get_pr_diff.assert_called_once_with(base_branch='origin/main')
@@ -293,7 +293,7 @@ class TestGetPRDiffFromEnv:
             'SYSTEM_PULLREQUEST_TARGETBRANCH': 'develop',
             'BUILD_REPOSITORY_LOCALPATH': '/repo/path'
         }):
-            result = get_pr_diff_from_env()
+            _ = get_pr_diff_from_env()
 
             mock_parser_class.assert_called_once_with(repo_path='/repo/path')
             mock_parser.get_pr_diff.assert_called_once_with(base_branch='origin/develop')
@@ -314,6 +314,6 @@ class TestGetPRDiffFromEnv:
         with patch.dict(os.environ, {
             'SYSTEM_PULLREQUEST_TARGETBRANCH': 'origin/feature-branch'
         }):
-            result = get_pr_diff_from_env()
+            _ = get_pr_diff_from_env()
 
             mock_parser.get_pr_diff.assert_called_once_with(base_branch='origin/feature-branch')

@@ -4,17 +4,13 @@ Unit tests for LLM Client abstraction layer
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import os
 
 from scripts.utils.llm_client import (
     LLMProvider,
     LLMResponse,
-    BaseLLMClient,
     AnthropicClient,
-    OpenAIClient,
-    AzureOpenAIClient,
-    GeminiClient,
     create_llm_client,
     get_provider_from_env
 )
@@ -64,7 +60,7 @@ class TestAnthropicClient:
         """Test initialization from environment variable"""
         with patch.dict(os.environ, {'ANTHROPIC_API_KEY': 'env-key'}):
             with patch('anthropic.Anthropic') as mock_anthropic:
-                client = AnthropicClient()
+                _ = AnthropicClient()
                 mock_anthropic.assert_called_once_with(api_key='env-key')
 
     def test_generate(self):

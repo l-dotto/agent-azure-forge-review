@@ -12,25 +12,24 @@ Supported LLM Providers:
 - Google Gemini
 """
 
-import os
 import sys
 import argparse
 import json
 import subprocess
 from pathlib import Path
 from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from tenacity import retry, stop_after_attempt, wait_exponential
-from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn
+from tenacity import retry, stop_after_attempt, wait_exponential  # noqa: E402
+from rich.console import Console  # noqa: E402
+from rich.progress import Progress, SpinnerColumn, TextColumn  # noqa: E402
 
-from utils.git_diff_parser import GitDiffParser
-from utils.markdown_parser import parse_agent_output, findings_to_json
-from utils.llm_client import create_llm_client, get_provider_from_env
+from utils.git_diff_parser import GitDiffParser  # noqa: E402
+from utils.markdown_parser import parse_agent_output  # noqa: E402
+from utils.llm_client import create_llm_client, get_provider_from_env  # noqa: E402
 
 
 console = Console()
@@ -247,7 +246,7 @@ class SecurityReviewRunner:
                         "agent": "sentinel",
                         "provider": self.provider,
                         "model": self.model,
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                         "files_changed": 0
                     }
                 }
@@ -273,10 +272,10 @@ class SecurityReviewRunner:
             progress.update(task4, completed=True)
 
         # Summary
-        console.print(f"\n[bold green]✓ Analysis complete[/bold green]")
+        console.print("\n[bold green]✓ Analysis complete[/bold green]")
         console.print(f"Found {len(findings)} security findings:")
 
-        severity_counts = {}
+        severity_counts: Dict[str, int] = {}
         for finding in findings:
             severity = finding.severity
             severity_counts[severity] = severity_counts.get(severity, 0) + 1
@@ -296,7 +295,7 @@ class SecurityReviewRunner:
                 "agent": "sentinel",
                 "provider": self.provider,
                 "model": self.model,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "files_changed": len(diff_result.files_changed),
                 "changed_files": diff_result.files_changed,
                 "additions": diff_result.additions,
