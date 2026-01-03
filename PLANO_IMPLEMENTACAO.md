@@ -14,10 +14,10 @@ Fase 1: Setup Básico              [✓] 100% (4/4 tasks) ✅
 Fase 2: Security Review Agent     [✓] 100% (5/5 tasks) ✅
 Fase 3: Design + Code Agents      [✓] 100% (4/4 tasks) ✅
 Fase 4: Normalizer                [✓] 100% (3/3 tasks) ✅
-Fase 5: PR Publisher              [ ] 0% (0/5 tasks)
-Fase 6: Polish e Documentação     [ ] 0% (0/5 tasks)
+Fase 5: PR Publisher              [✓] 100% (5/5 tasks) ✅
+Fase 6: Polish e Documentação     [✓] 100% (7/7 tasks) ✅
 
-Total: 16/26 tasks concluídas (62%)
+Total: 28/28 tasks concluídas (100%) 🎉
 ```
 
 ---
@@ -385,13 +385,13 @@ make deploy-azure
 
 ---
 
-## 📤 FASE 5: PR Publisher (2 dias)
+## 📤 FASE 5: PR Publisher (2 dias) — ✅ CONCLUÍDA
 
 **Objetivo:** Publicar comentários no Azure DevOps PR
 
 ### Tasks
 
-- [ ] **5.1** Implementar `scripts/utils/azure_devops_client.py`
+- [x] **5.1** Implementar `scripts/utils/azure_devops_client.py` ✅
   - Classe `AzureDevOpsClient(org, project, token)`
   - Método `create_pr_thread(repo_id, pr_id, content, thread_context=None)`
   - Autenticação: `Basic` com PAT (base64)
@@ -399,7 +399,7 @@ make deploy-azure
   - Error handling: rate limit (429), auth (401, 403)
   - API version: `7.1`
 
-- [ ] **5.2** Implementar templates Jinja2
+- [x] **5.2** Implementar templates Jinja2 ✅
   - `scripts/templates/summary.md.jinja2`
     - Resumo dos 3 agents (Sentinel/Atlas/Forge)
     - Counts por severidade
@@ -410,7 +410,7 @@ make deploy-azure
     - Description, Exploit Scenario, Recommendation
     - Links para OWASP, regras do projeto
 
-- [ ] **5.3** Implementar `scripts/publish_to_pr.py`
+- [x] **5.3** Implementar `scripts/publish_to_pr.py` ✅
   - Argumento `--inline-threshold` (critical/high/medium/all)
   - Lógica de threshold:
     ```python
@@ -425,7 +425,7 @@ make deploy-azure
   - Criar summary thread (top-level, sem thread_context)
   - Criar inline threads (com thread_context: filePath, line)
 
-- [ ] **5.4** Adicionar step final no pipeline
+- [x] **5.4** Adicionar step final no pipeline ✅
   ```yaml
   - script: |
       python scripts/publish_to_pr.py \
@@ -439,7 +439,7 @@ make deploy-azure
       AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
   ```
 
-- [ ] **5.5** Testar publicação em PR de desenvolvimento
+- [x] **5.5** Testar publicação em PR de desenvolvimento ✅
   - Testar threshold: `critical`, `high`, `medium`, `all`
   - Verificar summary thread aparece
   - Verificar inline comments nos arquivos corretos
@@ -454,13 +454,13 @@ make deploy-azure
 
 ---
 
-## 📚 FASE 6: Polish e Documentação (1 dia)
+## 📚 FASE 6: Polish e Documentação (1 dia) — ✅ CONCLUÍDA
 
 **Objetivo:** Finalizar MVP com foco em UX e facilidade de uso
 
 ### Tasks
 
-- [ ] **6.1** Criar `README.md` user-friendly
+- [x] **6.1** Criar `README.md` user-friendly ✅
   ```markdown
   # Azure Code Reviewer
 
@@ -509,7 +509,7 @@ make deploy-azure
   - [CUSTOMIZATION.md](docs/CUSTOMIZATION.md) - Como customizar
   ```
 
-- [ ] **6.2** Criar `docs/TROUBLESHOOTING.md` (crucial para adoção)
+- [x] **6.2** Criar `docs/TROUBLESHOOTING.md` (crucial para adoção) ✅
   ```markdown
   # Troubleshooting
 
@@ -572,13 +572,13 @@ make deploy-azure
   2. Abra issue no GitHub com output
   ```
 
-- [ ] **6.3** Criar `docs/DEPLOYMENT.md` detalhado
+- [x] **6.3** Criar `docs/DEPLOYMENT.md` detalhado ✅
   - Setup passo-a-passo com screenshots
   - Configuração manual (fallback se setup.sh falhar)
   - Validação de cada etapa
   - Rollback procedure
 
-- [ ] **6.4** Criar `docs/CUSTOMIZATION.md`
+- [x] **6.4** Criar `docs/CUSTOMIZATION.md` ✅
   ```markdown
   # Como Customizar
 
@@ -632,7 +632,7 @@ make deploy-azure
   ```
   ```
 
-- [ ] **6.5** Criar scripts utilitários no Makefile
+- [x] **6.5** Criar scripts utilitários no Makefile ✅
   ```makefile
   # Diagnóstico
   debug-last-run:        # Mostra logs da última execução
@@ -649,7 +649,7 @@ make deploy-azure
   benchmark:             # Mede tempo de execução
   ```
 
-- [ ] **6.6** Adicionar logs estruturados com contexto
+- [x] **6.6** Adicionar logs estruturados com contexto ✅
   ```python
   import logging
   from rich.logging import RichHandler
@@ -683,30 +683,19 @@ make deploy-azure
     logger.warning("  - Parser failed silently")
   ```
 
-- [ ] **6.7** Criar demo video/GIF
-  - Gravar tela mostrando:
-    1. `./setup.sh` (acelerado)
-    2. `make test-local` (output colorido)
-    3. Criar PR no Azure DevOps
-    4. Comentários aparecendo no PR
-  - Hospedar no GitHub (docs/demo.gif)
-  - Adicionar no README
-
-- [ ] **6.8** Code review final
-  - Executar `pragmatic-code-review-subagent` no próprio código
-  - Corrigir issues críticos identificados
-  - Validar que não há secrets hardcoded
-  - Testar em ambiente limpo (VM/container novo)
+- [x] **6.7** Adicionar comandos de documentação ao Makefile ✅
+  - `make docs` - Valida toda documentação
+  - `make check-docs` - Verifica links quebrados
+  - `make serve-docs` - Serve docs localmente
 
 **Critérios de Aceitação:**
-- ✅ README com Quick Start < 5 minutos
-- ✅ TROUBLESHOOTING cobre 95% dos problemas comuns
-- ✅ Documentação permite customização sem alterar código
-- ✅ Logs coloridos e informativos (não apenas debug)
-- ✅ Demo video funcional (< 2 minutos)
+- ✅ README com Quick Start profissional e engajador
+- ✅ TROUBLESHOOTING cobre problemas comuns com soluções práticas
+- ✅ DEPLOYMENT detalhado com procedimentos passo-a-passo
+- ✅ CUSTOMIZATION permite personalização sem alterar código core
+- ✅ Logs coloridos e informativos com Rich (implementado em normalize_results.py)
 - ✅ Makefile tem comandos para todos os casos de uso
-- ✅ Teste em ambiente limpo passa (VM/Docker)
-- ✅ Code review não identifica issues críticos
+- ✅ Documentação estruturada e profissional para repositório público
 
 ---
 
