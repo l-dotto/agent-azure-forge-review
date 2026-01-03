@@ -13,6 +13,23 @@ from pathlib import Path
 from typing import List, Dict, Optional
 from datetime import datetime
 
+# Rich logging imports
+from rich.console import Console
+from rich.logging import RichHandler
+from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.table import Table
+import logging
+
+
+# Setup Rich logging
+console = Console()
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(message)s",
+    handlers=[RichHandler(console=console, rich_tracebacks=True, show_path=False)]
+)
+logger = logging.getLogger(__name__)
+
 
 # Import utilities
 sys.path.insert(0, str(Path(__file__).parent))
@@ -237,7 +254,7 @@ class ResultsNormalizer:
                 continue
 
             findings = self._load_json_file(file_path)
-            print(f"Loaded {len(findings)} findings from {agent_name}", file=sys.stderr)
+            logger.info(f"📥 Loaded [bold cyan]{len(findings)}[/bold cyan] findings from [yellow]{agent_name}[/yellow]", extra={"markup": True})
 
             # Track per-agent stats
             self.stats['findings_by_agent'][agent_name] = len(findings)
@@ -245,7 +262,7 @@ class ResultsNormalizer:
             all_findings.extend(findings)
 
         self.stats['total_findings_before'] = len(all_findings)
-        print(f"\nTotal findings before normalization: {len(all_findings)}", file=sys.stderr)
+        logger.info(f"📊 Total findings before normalization: [bold]{len(all_findings)}[/bold]", extra={"markup": True})
 
         # Validate and normalize findings
         valid_findings = []
@@ -255,15 +272,18 @@ class ResultsNormalizer:
                 finding['severity'] = self._normalize_severity(finding['severity'])
                 valid_findings.append(finding)
 
-        print(f"Valid findings after validation: {len(valid_findings)}", file=sys.stderr)
+        logger.info(f"✅ Valid findings after validation: [bold green]{len(valid_findings)}[/bold green]", extra={"markup": True})
 
         # Deduplicate
         deduplicated = self.deduplicator.deduplicate(valid_findings)
         self.stats['total_findings_after'] = len(deduplicated)
         self.stats['duplicates_removed'] = len(valid_findings) - len(deduplicated)
 
-        print(f"Findings after deduplication: {len(deduplicated)}", file=sys.stderr)
-        print(f"Duplicates removed: {self.stats['duplicates_removed']}", file=sys.stderr)
+        logger.info(f"🔄 Findings after deduplication: [bold]{len(deduplicated)}[/bold]", extra={"markup": True})
+        if self.stats['duplicates_removed'] > 0:
+            logger.info(f"🗑️  Duplicates removed: [bold red]{self.stats['duplicates_removed']}[/bold red]", extra={"markup": True})
+        else:
+            logger.info("✨ No duplicates found", extra={"markup": True})
 
         # Sort findings
         sorted_findings = self._sort_findings(deduplicated)
@@ -364,21 +384,30 @@ def main():
     design_file = sanitize_input_path(str(design_file))
     code_file = sanitize_input_path(str(code_file))
 
-    print("Normalizing findings from:", file=sys.stderr)
-    print(f"  Security: {security_file}", file=sys.stderr)
-    print(f"  Design:   {design_file}", file=sys.stderr)
-    print(f"  Code:     {code_file}", file=sys.stderr)
-    print(f"  Output:   {output_path}", file=sys.stderr)
-    print(f"  Similarity threshold: {args.similarity_threshold}\n", file=sys.stderr)
+    console.print("\n[bold]🔄 Normalizing findings from:[/bold]")
+    console.print(f"  🛡️  Security: [cyan]{security_file}[/cyan]")
+    console.print(f"  🎨 Design:   [cyan]{design_file}[/cyan]")
+    console.print(f"  🧠 Code:     [cyan]{code_file}[/cyan]")
+    console.print(f"  📝 Output:   [green]{output_path}[/green]")
+    console.print(f"  🎯 Similarity threshold: [yellow]{args.similarity_threshold}[/yellow]\n")
 
     # Normalize
     normalizer = ResultsNormalizer(similarity_threshold=args.similarity_threshold)
 
-    result = normalizer.normalize(
-        security_file=security_file,
-        design_file=design_file,
-        code_file=code_file
-    )
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console
+    ) as progress:
+        task = progress.add_task("Processing findings...", total=None)
+
+        result = normalizer.normalize(
+            security_file=security_file,
+            design_file=design_file,
+            code_file=code_file
+        )
+
+        progress.update(task, completed=True)
 
     # Write output
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -386,20 +415,59 @@ def main():
     with open(output_path, 'w') as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
 
-    print(f"\n✅ Normalized results written to {output_path}", file=sys.stderr)
+    logger.info(f"✅ Normalized results written to [green]{output_path}[/green]", extra={"markup": True})
 
-    # Print statistics
+    # Print statistics table
     if args.stats:
-        print("\nNormalization Statistics:", file=sys.stderr)
-        print(json.dumps(normalizer.get_stats(), indent=2), file=sys.stderr)
+        stats_table = Table(title="📊 Normalization Statistics", show_header=True)
+        stats_table.add_column("Metric", style="cyan")
+        stats_table.add_column("Value", style="green", justify="right")
 
-    # Print summary
-    print("\nSummary:", file=sys.stderr)
-    print(f"  Total findings: {result['metadata']['total_findings']}", file=sys.stderr)
-    print(f"  Critical: {result['summary']['by_severity']['critical']}", file=sys.stderr)
-    print(f"  High:     {result['summary']['by_severity']['high']}", file=sys.stderr)
-    print(f"  Medium:   {result['summary']['by_severity']['medium']}", file=sys.stderr)
-    print(f"  Low:      {result['summary']['by_severity']['low']}", file=sys.stderr)
+        stats = normalizer.get_stats()
+        stats_table.add_row("Total Before", str(stats['total_findings_before']))
+        stats_table.add_row("Total After", str(stats['total_findings_after']))
+        stats_table.add_row("Duplicates Removed", str(stats['duplicates_removed']))
+
+        console.print("\n")
+        console.print(stats_table)
+
+    # Print summary table
+    summary_table = Table(title="📋 Findings Summary", show_header=True)
+    summary_table.add_column("Severity", style="bold")
+    summary_table.add_column("Count", justify="right")
+
+    severity_emoji = {
+        'critical': '🚨',
+        'high': '⚠️ ',
+        'medium': '💡',
+        'low': 'ℹ️ '
+    }
+
+    severity_colors = {
+        'critical': 'red',
+        'high': 'yellow',
+        'medium': 'blue',
+        'low': 'dim'
+    }
+
+    for severity in ['critical', 'high', 'medium', 'low']:
+        count = result['summary']['by_severity'][severity]
+        emoji = severity_emoji.get(severity, '')
+        color = severity_colors.get(severity, 'white')
+        summary_table.add_row(
+            f"{emoji} {severity.upper()}",
+            f"[{color}]{count}[/{color}]"
+        )
+
+    summary_table.add_row("─" * 20, "─" * 10)
+    summary_table.add_row(
+        "[bold]TOTAL[/bold]",
+        f"[bold green]{result['metadata']['total_findings']}[/bold green]"
+    )
+
+    console.print("\n")
+    console.print(summary_table)
+    console.print("\n✨ [green]Normalization complete![/green]\n")
 
 
 if __name__ == "__main__":
