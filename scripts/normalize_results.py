@@ -17,6 +17,7 @@ from datetime import datetime
 # Import utilities
 sys.path.insert(0, str(Path(__file__).parent))
 from utils.finding_deduplicator import FindingDeduplicator
+from utils.path_sanitizer import sanitize_output_path, sanitize_input_path
 
 
 class ResultsNormalizer:
@@ -350,16 +351,24 @@ def main():
 
     args = parser.parse_args()
 
-    # Determine input files
+    # Sanitize output path to prevent Path Traversal (CWE-23)
+    output_path = sanitize_output_path(str(args.output))
+
+    # Determine and sanitize input files
     security_file = args.security_file or (args.input_dir / 'security.json')
     design_file = args.design_file or (args.input_dir / 'design.json')
     code_file = args.code_file or (args.input_dir / 'code.json')
+
+    # Sanitize input paths
+    security_file = sanitize_input_path(str(security_file))
+    design_file = sanitize_input_path(str(design_file))
+    code_file = sanitize_input_path(str(code_file))
 
     print("Normalizing findings from:", file=sys.stderr)
     print(f"  Security: {security_file}", file=sys.stderr)
     print(f"  Design:   {design_file}", file=sys.stderr)
     print(f"  Code:     {code_file}", file=sys.stderr)
-    print(f"  Output:   {args.output}", file=sys.stderr)
+    print(f"  Output:   {output_path}", file=sys.stderr)
     print(f"  Similarity threshold: {args.similarity_threshold}\n", file=sys.stderr)
 
     # Normalize
@@ -372,12 +381,12 @@ def main():
     )
 
     # Write output
-    args.output.parent.mkdir(parents=True, exist_ok=True)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(args.output, 'w') as f:
+    with open(output_path, 'w') as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
 
-    print(f"\n✅ Normalized results written to {args.output}", file=sys.stderr)
+    print(f"\n✅ Normalized results written to {output_path}", file=sys.stderr)
 
     # Print statistics
     if args.stats:

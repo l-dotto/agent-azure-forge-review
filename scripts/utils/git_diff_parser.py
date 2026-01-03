@@ -10,6 +10,7 @@ import re
 import subprocess
 from typing import Tuple
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass
@@ -260,6 +261,7 @@ if __name__ == "__main__":
     """CLI interface for testing"""
     import argparse
     import json
+    from path_sanitizer import sanitize_output_path
 
     parser_cli = argparse.ArgumentParser(description='Extract and sanitize git diffs')
     parser_cli.add_argument(
@@ -303,8 +305,12 @@ if __name__ == "__main__":
         output = result.content
 
     if args.output:
-        with open(args.output, 'w') as f:
+        # Sanitize output path to prevent Path Traversal (CWE-23)
+        output_path = sanitize_output_path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(output_path, 'w') as f:
             f.write(output)
-        print(f"Diff written to {args.output}")
+        print(f"Diff written to {output_path}")
     else:
         print(output)

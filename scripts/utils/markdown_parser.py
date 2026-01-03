@@ -12,6 +12,7 @@ from typing import Optional, Dict, List, Any, Union
 from enum import Enum
 
 from .models import Finding
+from .path_sanitizer import sanitize_input_path, sanitize_output_path
 
 
 class Severity(str, Enum):
@@ -417,15 +418,22 @@ if __name__ == "__main__":
 
     args = parser_cli.parse_args()
 
-    with open(args.input_file, 'r') as f:
+    # Sanitize input path to prevent Path Traversal (CWE-23)
+    input_path = sanitize_input_path(args.input_file)
+
+    with open(input_path, 'r') as f:
         markdown = f.read()
 
     findings = parse_agent_output(markdown, args.agent_type)
     json_output = findings_to_json(findings)
 
     if args.output:
-        with open(args.output, 'w') as f:
+        # Sanitize output path to prevent Path Traversal (CWE-23)
+        output_path = sanitize_output_path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(output_path, 'w') as f:
             f.write(json_output)
-        print(f"Parsed {len(findings)} findings to {args.output}")
+        print(f"Parsed {len(findings)} findings to {output_path}")
     else:
         print(json_output)
