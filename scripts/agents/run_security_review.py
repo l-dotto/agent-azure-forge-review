@@ -30,6 +30,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn  # noqa: E402
 from utils.git_diff_parser import GitDiffParser  # noqa: E402
 from utils.markdown_parser import parse_agent_output  # noqa: E402
 from utils.llm_client import create_llm_client, get_provider_from_env  # noqa: E402
+from utils.path_sanitizer import sanitize_output_path  # noqa: E402
 
 
 console = Console()
@@ -399,8 +400,8 @@ Environment Variables:
 
         result = runner.run()
 
-        # Save JSON output
-        output_path = Path(args.output)
+        # Save JSON output - Sanitize path to prevent Path Traversal (CWE-23)
+        output_path = sanitize_output_path(args.output)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(output_path, 'w') as f:

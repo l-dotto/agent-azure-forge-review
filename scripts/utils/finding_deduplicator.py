@@ -243,6 +243,7 @@ if __name__ == "__main__":
     """CLI interface for testing deduplication"""
     import json
     import argparse
+    from path_sanitizer import sanitize_input_path, sanitize_output_path
 
     parser = argparse.ArgumentParser(description='Deduplicate findings')
     parser.add_argument(
@@ -267,8 +268,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Load findings
-    with open(args.input_file, 'r') as f:
+    # Load findings - Sanitize path to prevent Path Traversal (CWE-23)
+    input_path = sanitize_input_path(args.input_file)
+    with open(input_path, 'r') as f:
         findings = json.load(f)
 
     original_count = len(findings)
@@ -277,9 +279,11 @@ if __name__ == "__main__":
     deduplicator = FindingDeduplicator(similarity_threshold=args.similarity_threshold)
     deduplicated = deduplicator.deduplicate(findings)
 
-    # Output results
+    # Output results - Sanitize path to prevent Path Traversal (CWE-23)
     if args.output:
-        with open(args.output, 'w') as f:
+        output_path = sanitize_output_path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, 'w') as f:
             json.dump(deduplicated, f, indent=2, ensure_ascii=False)
         print(f"Deduplicated {original_count} → {len(deduplicated)} findings")
     else:
