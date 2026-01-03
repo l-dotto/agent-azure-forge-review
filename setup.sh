@@ -49,8 +49,11 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-PYTHON_VERSION=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1-2)
-if (( $(echo "$PYTHON_VERSION < 3.11" | bc -l) )); then
+PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
+PYTHON_MAJOR=$(echo $PYTHON_VERSION | cut -d'.' -f1)
+PYTHON_MINOR=$(echo $PYTHON_VERSION | cut -d'.' -f2)
+
+if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 11 ]); then
     log_error "Python 3.11+ required. Found: $PYTHON_VERSION"
     exit 1
 fi
