@@ -78,7 +78,8 @@ class AzureDevOpsClient:
         logger.info(
             f"Azure DevOps client initialized: "
             f"org={self._mask_url(self.organization_url)}, "
-            f"project={self.project}, pr_id={self.pr_id}"
+            f"project={self.project}, pr_id={self.pr_id}, "
+            f"token={self._mask_token(self.access_token)}"
         )
 
     def _parse_pr_id(self) -> Optional[int]:
@@ -147,6 +148,12 @@ class AzureDevOpsClient:
         parsed = urlparse(url)
         return f"{parsed.scheme}://{parsed.netloc}/***"
 
+    def _mask_token(self, token: str) -> str:
+        """Mask access token for secure logging."""
+        if not token or len(token) < 8:
+            return "***"
+        return f"{token[:4]}...{token[-4:]}"
+
     def _build_api_url(self, endpoint: str) -> str:
         """Build complete API URL."""
         base = f"{self.organization_url.rstrip('/')}/{self.project}/_apis"
@@ -199,8 +206,13 @@ class AzureDevOpsClient:
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to create thread: {e}")
-            if hasattr(e.response, 'text'):
-                logger.error(f"Response: {e.response.text}")
+            # Log response status but not full text (may contain sensitive data)
+            if hasattr(e, 'response') and e.response is not None:
+                logger.error(f"Response status: {e.response.status_code}")
+                # Only log first 200 chars of response to avoid exposing sensitive data
+                if hasattr(e.response, 'text') and e.response.text:
+                    truncated = e.response.text[:200]
+                    logger.error(f"Response (truncated): {truncated}...")
             raise
 
     def create_summary_comment(self, content: str) -> Dict[str, Any]:
@@ -218,6 +230,40 @@ class AzureDevOpsClient:
             comment_type="text"
         )
         return self.create_thread([comment], thread_status="closed")
+
+    def _sanitize_file_path(self, file_path: str) -> str:
+        """
+        Sanitize file path to prevent path traversal attacks.
+
+        Args:
+            file_path: Raw file path from findings
+
+        Returns:
+            Sanitized file path safe for Azure DevOps API
+
+        Raises:
+            ValueError: If path contains traversal sequences or is invalid
+        """
+        if not file_path:
+            raise ValueError("File path cannot be empty")
+
+        # Normalize the path
+        normalized = os.path.normpath(file_path)
+
+        # Reject absolute paths
+        if os.path.isabs(normalized):
+            raise ValueError(f"Absolute paths not allowed: {file_path}")
+
+        # Reject paths with .. components (path traversal)
+        path_parts = normalized.split(os.sep)
+        if '..' in path_parts:
+            raise ValueError(f"Path traversal detected in: {file_path}")
+
+        # Ensure forward slashes for Azure DevOps API
+        sanitized = normalized.replace(os.sep, '/')
+
+        # Remove any leading slashes and add single leading slash
+        return f"/{sanitized.lstrip('/')}"
 
     def create_inline_comment(
         self,
@@ -237,11 +283,17 @@ class AzureDevOpsClient:
 
         Returns:
             API response with thread details
+
+        Raises:
+            ValueError: If file_path contains path traversal sequences
         """
+        # Sanitize file path to prevent path traversal
+        sanitized_path = self._sanitize_file_path(file_path)
+
         comment = PRComment(
             content=content,
             thread_context={
-                "filePath": f"/{file_path.lstrip('/')}",
+                "filePath": sanitized_path,
                 "rightFileStart": {"line": line_number, "offset": 1},
                 "rightFileEnd": {"line": line_number, "offset": 1}
             },

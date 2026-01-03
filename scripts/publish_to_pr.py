@@ -16,12 +16,12 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Any
-from collections import defaultdict
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2.sandbox import SandboxedEnvironment
+from jinja2 import FileSystemLoader
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -48,6 +48,37 @@ AGENT_EMOJIS = {
     'Sentinel': '🛡️',
     'Atlas': '🎨',
     'Forge': '🔨'
+}
+
+# JSON Schema for review results validation
+REVIEW_RESULT_SCHEMA = {
+    "type": "object",
+    "required": ["findings"],
+    "properties": {
+        "findings": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["title", "severity", "source"],
+                "properties": {
+                    "title": {"type": "string", "maxLength": 500},
+                    "severity": {
+                        "type": "string",
+                        "enum": ["critical", "high", "medium", "low", "info"]
+                    },
+                    "file_path": {"type": ["string", "null"], "maxLength": 1000},
+                    "line_number": {"type": ["integer", "null"], "minimum": 1},
+                    "description": {"type": "string", "maxLength": 10000},
+                    "source": {"type": "string", "maxLength": 100},
+                    "confidence": {"type": ["integer", "null"], "minimum": 0, "maximum": 100},
+                    "recommendation": {"type": ["string", "null"], "maxLength": 10000},
+                    "code_snippet": {"type": ["string", "null"], "maxLength": 5000},
+                    "exploit_scenario": {"type": ["string", "null"], "maxLength": 10000}
+                }
+            }
+        },
+        "metadata": {"type": "object"}
+    }
 }
 
 
@@ -84,11 +115,11 @@ class PRPublisher:
                 f"Must be one of: {', '.join(valid_thresholds)}"
             )
 
-        # Setup Jinja2 templates
+        # Setup Jinja2 templates with sandboxed environment for security
         template_dir = Path(__file__).parent / "templates"
-        self.jinja_env = Environment(
+        self.jinja_env = SandboxedEnvironment(
             loader=FileSystemLoader(str(template_dir)),
-            autoescape=select_autoescape(['html', 'xml']),
+            autoescape=True,  # Force autoescape for all templates (prevents SSTI)
             trim_blocks=True,
             lstrip_blocks=True
         )
@@ -100,7 +131,7 @@ class PRPublisher:
         )
 
     def load_review_results(self) -> Dict[str, Any]:
-        """Load and validate review results JSON."""
+        """Load and validate review results JSON with schema validation."""
         if not self.review_results_path.exists():
             raise FileNotFoundError(
                 f"Review results not found: {self.review_results_path}\n"
@@ -109,14 +140,45 @@ class PRPublisher:
 
         logger.info(f"Loading review results from {self.review_results_path}")
 
-        with open(self.review_results_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        try:
+            with open(self.review_results_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in review results: {e}")
 
-        # Validate structure
+        # Basic schema validation
         if 'findings' not in data:
             raise ValueError("Invalid review results: missing 'findings' key")
 
-        logger.info(f"Loaded {len(data['findings'])} finding(s)")
+        if not isinstance(data['findings'], list):
+            raise ValueError("Invalid review results: 'findings' must be a list")
+
+        # Validate each finding has required fields and types
+        for i, finding in enumerate(data['findings']):
+            if not isinstance(finding, dict):
+                raise ValueError(f"Finding {i} is not a dictionary")
+
+            # Required fields
+            for field in ['title', 'severity', 'source']:
+                if field not in finding:
+                    raise ValueError(f"Finding {i} missing required field: {field}")
+                if not isinstance(finding[field], str):
+                    raise ValueError(f"Finding {i} field '{field}' must be a string")
+
+            # Validate severity
+            if finding['severity'].lower() not in SEVERITY_ORDER:
+                logger.warning(f"Finding {i} has unknown severity '{finding['severity']}', treating as 'info'")
+
+            # Validate optional numeric fields
+            if 'line_number' in finding and finding['line_number'] is not None:
+                if not isinstance(finding['line_number'], int) or finding['line_number'] < 1:
+                    raise ValueError(f"Finding {i} has invalid line_number")
+
+            if 'confidence' in finding and finding['confidence'] is not None:
+                if not isinstance(finding['confidence'], (int, float)):
+                    raise ValueError(f"Finding {i} has invalid confidence score")
+
+        logger.info(f"Loaded and validated {len(data['findings'])} finding(s)")
         return data
 
     def categorize_findings(self, findings: List[Dict]) -> Dict[str, List[Dict]]:
@@ -174,7 +236,7 @@ class PRPublisher:
             'agents_executed': metadata.get('agents_executed', []),
             'files_reviewed': metadata.get('files_reviewed', 0),
             'lines_analyzed': metadata.get('lines_analyzed', 0),
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC'),
+            'timestamp': datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC'),
             'inline_threshold': self.inline_threshold
         }
 
@@ -303,18 +365,63 @@ class PRPublisher:
         logger.info("PR publish workflow completed successfully!")
 
 
+def validate_environment_variables() -> tuple[str, str]:
+    """
+    Validate and sanitize environment variables.
+
+    Returns:
+        Tuple of (inline_threshold, review_results_path)
+
+    Raises:
+        ValueError: If environment variables are invalid
+    """
+    # Validate threshold
+    threshold = os.getenv('INLINE_SEVERITY_THRESHOLD', 'high').lower()
+    valid_thresholds = ['critical', 'high', 'medium', 'low', 'all']
+
+    if threshold not in valid_thresholds:
+        logger.warning(
+            f"Invalid INLINE_SEVERITY_THRESHOLD '{threshold}', "
+            f"using default 'high'"
+        )
+        threshold = 'high'
+
+    # Validate review results path
+    results_path = os.getenv('REVIEW_RESULTS_PATH', 'findings/reviewResult.json')
+
+    # Security: Validate path length
+    if len(results_path) > 500:
+        raise ValueError("REVIEW_RESULTS_PATH too long (max 500 characters)")
+
+    # Security: Normalize and check for path traversal
+    normalized_path = os.path.normpath(results_path)
+
+    if os.path.isabs(normalized_path):
+        raise ValueError(
+            f"REVIEW_RESULTS_PATH must be a relative path, got: {results_path}"
+        )
+
+    # Check for path traversal attempts
+    if '..' in normalized_path.split(os.sep):
+        raise ValueError(
+            f"Path traversal detected in REVIEW_RESULTS_PATH: {results_path}"
+        )
+
+    return threshold, normalized_path
+
+
 def main():
     """Main entry point with ultra-simple configuration."""
     logger.info("=" * 60)
     logger.info("Azure Code Reviewer - PR Publisher")
     logger.info("=" * 60)
 
-    # Auto-detect configuration from environment
-    inline_threshold = os.getenv('INLINE_SEVERITY_THRESHOLD', 'high')
-    review_results_path = os.getenv(
-        'REVIEW_RESULTS_PATH',
-        'findings/reviewResult.json'
-    )
+    try:
+        # Validate environment variables
+        inline_threshold, review_results_path = validate_environment_variables()
+    except ValueError as e:
+        logger.error(f"❌ Environment variable validation failed: {e}")
+        return 1
 
     logger.info(f"Configuration (auto-detected):")
     logger.info(f"  Inline threshold: {inline_threshold}")
