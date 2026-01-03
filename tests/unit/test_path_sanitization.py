@@ -2,18 +2,19 @@
 """
 Unit tests for path sanitization (Path Traversal prevention)
 
-Tests the sanitize_output_path function to ensure it properly blocks
-malicious path inputs and only allows safe, validated paths.
+Tests the sanitize_output_path and sanitize_input_path functions to ensure
+they properly block malicious path inputs and only allow safe, validated paths.
 """
 
 import pytest
 from pathlib import Path
 import sys
+import tempfile
 
 # Add scripts directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'scripts'))
 
-from utils.path_sanitizer import sanitize_output_path  # noqa: E402
+from utils.path_sanitizer import sanitize_output_path, sanitize_input_path  # noqa: E402
 
 
 class TestPathSanitization:
@@ -146,6 +147,107 @@ class TestPathTraversalAttackVectors:
         result = sanitize_output_path(valid_path)
         assert isinstance(result, Path)
         assert result.suffix in {'.json', '.md'}
+
+    def test_invalid_path_format_raises_error(self):
+        """Should raise ValueError for paths with null bytes"""
+        # Null bytes are blocked by the '..' check (treated as traversal)
+        with pytest.raises(ValueError):
+            sanitize_output_path('findings/test.json\x00')
+
+    def test_path_outside_allowed_directories(self):
+        """Should block paths with parent directory references"""
+        # Path with .. is blocked before resolution
+        with pytest.raises(ValueError, match="directory traversal"):
+            sanitize_output_path('scripts/../../other_project/file.json')
+
+    def test_custom_allowed_extensions(self):
+        """Should validate custom allowed extensions"""
+        # Allow .yaml extension
+        result = sanitize_output_path('findings/config.yaml', allowed_extensions={'.yaml', '.yml'})
+        assert result.suffix == '.yaml'
+
+        # Block .txt when not in allowed extensions
+        with pytest.raises(ValueError, match="Invalid file extension"):
+            sanitize_output_path('findings/readme.txt', allowed_extensions={'.yaml'})
+
+
+class TestInputPathSanitization:
+    """Test suite for sanitize_input_path function"""
+
+    @pytest.fixture
+    def temp_test_file(self):
+        """Create a temporary test file for input validation"""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False, dir='.') as f:
+            f.write('{"test": true}')
+            temp_path = Path(f.name).name  # Get just the filename (relative path)
+
+        yield temp_path
+
+        # Cleanup
+        Path(temp_path).unlink(missing_ok=True)
+
+    def test_input_path_valid_file(self, temp_test_file):
+        """Should allow valid input file that exists"""
+        result = sanitize_input_path(temp_test_file)
+        assert result.exists()
+        assert result.is_file()
+        assert result.suffix == '.json'
+
+    def test_input_path_blocks_nonexistent_file(self):
+        """Should raise ValueError for nonexistent files"""
+        with pytest.raises(ValueError, match="File not found"):
+            sanitize_input_path('nonexistent_file.json')
+
+    def test_input_path_blocks_directory(self):
+        """Should raise ValueError when path points to a directory"""
+        # Directory has no extension, so it will fail extension check first
+        with pytest.raises(ValueError, match="Invalid file extension"):
+            sanitize_input_path('findings')
+
+    def test_input_path_allows_more_extensions(self):
+        """Should allow .txt, .yaml, .yml by default for input"""
+        # Create temp files for different extensions
+        for ext in ['.txt', '.yaml', '.yml', '.md']:
+            with tempfile.NamedTemporaryFile(mode='w', suffix=ext, delete=False, dir='.') as f:
+                f.write('test content')
+                temp_path = Path(f.name).name
+
+            try:
+                result = sanitize_input_path(temp_path)
+                assert result.exists()
+                assert result.suffix == ext
+            finally:
+                Path(temp_path).unlink(missing_ok=True)
+
+    def test_input_path_blocks_traversal(self):
+        """Should block directory traversal in input paths"""
+        with pytest.raises(ValueError, match="directory traversal detected"):
+            sanitize_input_path('../../../etc/passwd.json')
+
+    def test_input_path_blocks_absolute_paths(self):
+        """Should block absolute paths in input"""
+        with pytest.raises(ValueError, match="directory traversal detected"):
+            sanitize_input_path('/etc/passwd.json')
+
+    def test_input_path_custom_extensions(self, temp_test_file):
+        """Should respect custom allowed extensions for input"""
+        # Block .json when not in allowed extensions
+        with pytest.raises(ValueError, match="Invalid file extension"):
+            sanitize_input_path(temp_test_file, allowed_extensions={'.xml', '.csv'})
+
+    def test_input_path_case_insensitive_extension(self):
+        """Should handle case-insensitive extensions"""
+        # Create temp file with uppercase extension
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.JSON', delete=False, dir='.') as f:
+            f.write('{}')
+            temp_path = Path(f.name).name
+
+        try:
+            result = sanitize_input_path(temp_path)
+            assert result.exists()
+            assert result.suffix.lower() == '.json'
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
 
 
 if __name__ == '__main__':
