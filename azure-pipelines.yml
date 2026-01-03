@@ -76,14 +76,14 @@ stages:
             displayName: 'Install Dependencies'
 
           - script: |
-              echo "Security review will be implemented in Phase 2"
-              echo "Agent: Sentinel"
-              echo "Focus: SQL injection, XSS, auth bypass, secrets exposure"
-              mkdir -p findings
-              echo '{"agent": "sentinel", "findings": [], "status": "not_implemented"}' > findings/security.json
-            displayName: 'Run Security Review'
+              python scripts/agents/run_security_review.py \
+                --base-branch origin/$(System.PullRequest.TargetBranch) \
+                --output findings/security.json \
+                --save-raw
+            displayName: 'Run Security Review (Sentinel)'
             env:
               ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)
+              LLM_PROVIDER: $(LLM_PROVIDER)
 
           - publish: findings/security.json
             artifact: security-findings

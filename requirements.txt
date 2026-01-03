@@ -1,8 +1,12 @@
 # Core dependencies
-anthropic==0.39.0
 pyyaml==6.0.1
 requests==2.31.0
 python-dotenv==1.0.0
+
+# LLM Providers (install only what you need)
+anthropic==0.39.0  # Default provider
+# openai==1.6.1  # Uncomment for OpenAI/Azure OpenAI support
+# google-generativeai==0.3.2  # Uncomment for Gemini support
 
 # Parsing and templating
 markdown-it-py==3.0.0
