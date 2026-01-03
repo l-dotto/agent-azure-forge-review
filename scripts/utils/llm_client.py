@@ -62,7 +62,7 @@ class AnthropicClient(BaseLLMClient):
     def __init__(self, api_key: Optional[str] = None, **kwargs):
         super().__init__(api_key, **kwargs)
         try:
-            from anthropic import Anthropic
+            from anthropic import Anthropic  # type: ignore[import-not-found]
             self.client = Anthropic(api_key=api_key or os.getenv('ANTHROPIC_API_KEY'))
         except ImportError:
             raise ImportError("anthropic package not installed. Run: pip install anthropic")
@@ -117,7 +117,7 @@ class OpenAIClient(BaseLLMClient):
     def __init__(self, api_key: Optional[str] = None, **kwargs):
         super().__init__(api_key, **kwargs)
         try:
-            from openai import OpenAI
+            from openai import OpenAI  # type: ignore[import-not-found]
             self.client = OpenAI(api_key=api_key or os.getenv('OPENAI_API_KEY'))
         except ImportError:
             raise ImportError("openai package not installed. Run: pip install openai")
@@ -173,7 +173,7 @@ class AzureOpenAIClient(BaseLLMClient):
     ):
         super().__init__(api_key, **kwargs)
         try:
-            from openai import AzureOpenAI
+            from openai import AzureOpenAI  # type: ignore[import-not-found]
             self.client = AzureOpenAI(
                 api_key=api_key or os.getenv('AZURE_OPENAI_API_KEY'),
                 api_version=kwargs.get('api_version', '2024-02-01'),
@@ -227,7 +227,7 @@ class GeminiClient(BaseLLMClient):
     def __init__(self, api_key: Optional[str] = None, **kwargs):
         super().__init__(api_key, **kwargs)
         try:
-            import google.generativeai as genai
+            import google.generativeai as genai  # type: ignore[import-not-found]
             genai.configure(api_key=api_key or os.getenv('GOOGLE_API_KEY'))
             self.genai = genai
         except ImportError:
