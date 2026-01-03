@@ -1,0 +1,30 @@
+# Azure Code Reviewer Configuration
+# Copy this file to config.yaml and customize
+
+severity_thresholds:
+  inline_comments: high  # critical | high | medium | all
+  summary: all
+
+agent_settings:
+  timeout_seconds: 120
+  retry_attempts: 3
+
+filters:
+  ignore_patterns:
+    - "vendor/**"
+    - "node_modules/**"
+    - "*.generated.*"
+    - "__pycache__/**"
+
+  file_extensions:
+    - ".py"
+    - ".js"
+    - ".ts"
+    - ".tsx"
+    - ".java"
+    - ".go"
+    - ".rs"
+
+azure_devops:
+  api_version: "7.1"
+  max_comment_length: 5000

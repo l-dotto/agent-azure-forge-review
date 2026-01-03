@@ -1,0 +1,91 @@
+[MAIN]
+# Python version
+py-version=3.11
+
+# Files or directories to be skipped
+ignore=CVS,.git,__pycache__,.venv,venv,env,build,dist
+
+# Use multiple processes to speed up Pylint
+jobs=4
+
+[MESSAGES CONTROL]
+# Disable specific warnings that are too strict or not applicable
+disable=
+    duplicate-code,          # Common in test files
+    too-few-public-methods,  # DTOs and data classes are fine
+    too-many-arguments,      # Sometimes necessary
+    too-many-locals,         # Sometimes necessary
+    too-many-branches,       # Sometimes necessary
+    too-many-statements,     # Sometimes necessary
+    line-too-long,           # Handled by black
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    fixme,                   # TODOs are ok during development
+    broad-exception-caught,  # Sometimes we need to catch Exception
+    logging-fstring-interpolation  # f-strings in logging are ok
+
+[FORMAT]
+# Maximum number of characters on a single line
+max-line-length=120
+
+# Maximum number of lines in a module
+max-module-lines=1000
+
+[BASIC]
+# Good variable names
+good-names=i,j,k,ex,Run,_,id,db,qa,pr,ci,cd,ai,ui,ux
+
+# Naming style for variables
+variable-naming-style=snake_case
+
+# Naming style for functions
+function-naming-style=snake_case
+
+# Naming style for classes
+class-naming-style=PascalCase
+
+# Naming style for constants
+const-naming-style=UPPER_CASE
+
+[DESIGN]
+# Minimum number of public methods for a class
+min-public-methods=0
+
+# Maximum number of attributes for a class
+max-attributes=12
+
+# Maximum number of arguments for function / method
+max-args=8
+
+# Maximum number of locals for function / method body
+max-locals=20
+
+# Maximum number of branches for function / method body
+max-branches=15
+
+# Maximum number of statements in function / method body
+max-statements=60
+
+[SIMILARITIES]
+# Minimum lines number of a similarity
+min-similarity-lines=6
+
+# Ignore comments when computing similarities
+ignore-comments=yes
+
+# Ignore docstrings when computing similarities
+ignore-docstrings=yes
+
+# Ignore imports when computing similarities
+ignore-imports=yes
+
+[REPORTS]
+# Set the output format
+output-format=colorized
+
+# Activate the evaluation score
+score=yes
+
+# Fail if score is below this threshold
+fail-under=7.0
