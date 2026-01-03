@@ -12,12 +12,12 @@
 ```
 Fase 1: Setup Básico              [✓] 100% (4/4 tasks) ✅
 Fase 2: Security Review Agent     [✓] 100% (5/5 tasks) ✅
-Fase 3: Design + Code Agents      [ ] 0% (0/4 tasks)
+Fase 3: Design + Code Agents      [✓] 100% (4/4 tasks) ✅
 Fase 4: Normalizer                [ ] 0% (0/3 tasks)
 Fase 5: PR Publisher              [ ] 0% (0/5 tasks)
 Fase 6: Polish e Documentação     [ ] 0% (0/5 tasks)
 
-Total: 9/26 tasks concluídas (35%)
+Total: 13/26 tasks concluídas (50%)
 ```
 
 ---
@@ -315,25 +315,25 @@ make deploy-azure
 
 ### Tasks
 
-- [ ] **3.1** Implementar `scripts/agents/run_design_review.py`
+- [x] **3.1** Implementar `scripts/agents/run_design_review.py` ✅
   - Duplicar lógica de Security Review
   - Carregar `.claude/agents/design-review-slash-command.md`
   - Parser adaptado para findings de design (UX, acessibilidade)
   - Salvar `findings/design.json`
 
-- [ ] **3.2** Implementar `scripts/agents/run_code_review.py`
+- [x] **3.2** Implementar `scripts/agents/run_code_review.py` ✅
   - Carregar `.claude/agents/pragmatic-code-review-subagent.md`
   - Usar model: `claude-opus-4-5-20251101` (mais profundo)
   - Parser para categorias: Critical/Improvements/Nits
   - Salvar `findings/code.json`
 
-- [ ] **3.3** Adicionar steps no pipeline (sequencial)
+- [x] **3.3** Adicionar steps no pipeline (sequencial) ✅
   ```yaml
   - script: python scripts/agents/run_design_review.py ...
   - script: python scripts/agents/run_code_review.py ...
   ```
 
-- [ ] **3.4** Testar execução dos 3 agents
+- [x] **3.4** Testar execução dos 3 agents ✅
   - Verificar tempo total < 5 minutos
   - Validar 3 JSONs gerados
   - Cada JSON reflete especialização do agent
