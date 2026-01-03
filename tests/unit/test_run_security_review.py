@@ -28,21 +28,26 @@ class TestSecurityReviewRunner:
         assert runner.model == "claude-sonnet-4-5-20250929"
 
     @patch('scripts.agents.run_security_review.create_llm_client')
+    @patch.dict('os.environ', {'TEST_API_KEY': 'sk-mock-test-key-12345'})
     def test_initialization_custom_provider(self, mock_create_client):
         """Test initialization with custom provider"""
+        import os
+
         mock_client = Mock()
         mock_client.get_default_model.return_value = "gpt-4-turbo-preview"
         mock_create_client.return_value = mock_client
 
+        test_api_key = os.environ['TEST_API_KEY']
+
         runner = SecurityReviewRunner(
             provider="openai",
-            api_key="test-key",
+            api_key=test_api_key,
             model="gpt-4-turbo-preview"
         )
 
         mock_create_client.assert_called_once_with(
             provider="openai",
-            api_key="test-key",
+            api_key=test_api_key,
             model="gpt-4-turbo-preview"
         )
         assert runner.provider == "openai"
