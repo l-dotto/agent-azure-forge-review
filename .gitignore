@@ -44,21 +44,48 @@ htmlcov/
 
 # Secrets and sensitive data
 *.env
+.env
+.env.local
+.env.backup
 *.pem
 *.key
+*.credential*
+*credential*.json
+.htpasswd
+*.pfx
+*.p12
+id_rsa*
+id_ed25519*
 secrets/
 .secrets/
 
 # Project specific
 findings/*.json
+!findings/README.md
+!findings/.gitkeep
 reviewResult.json
 *.log
+scripts/config/*.yaml
+!scripts/config/*.example.yaml
 
 # Claude local settings
 .claude/settings.local.json
 .claude/plans/
 
+# IDE specific
+.sonarlint/
+
 # macOS
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md
+
+# Security scanning reports
+snyk-report.json
+snyk-report.html
+.scannerwork/
+sonar-report.json
+coverage.xml

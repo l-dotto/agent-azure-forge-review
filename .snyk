@@ -1,0 +1,49 @@
+# Snyk (https://snyk.io) policy file
+
+# Configuração de severidade mínima para falhas
+# critical: apenas vulnerabilidades críticas causam falha
+# high: críticas e altas causam falha
+# medium: críticas, altas e médias causam falha
+# low: todas causam falha
+version: v1.25.0
+
+# Ignore specific vulnerabilities (use com cautela)
+ignore: {}
+
+# Patches aplicados automaticamente
+patch: {}
+
+# Configurações de linguagem
+language-settings:
+  python: '3.11'
+
+# Organizações e projetos Snyk
+# Deixe vazio para usar configuração padrão do CLI
+# org: 'sua-org'
+# project-name: 'azure-code-reviewer'
+
+# Opções de scan
+exclude:
+  # Diretórios a ignorar
+  - venv/
+  - .venv/
+  - env/
+  - ENV/
+  - __pycache__/
+  - .pytest_cache/
+  - htmlcov/
+  - dist/
+  - build/
+  - *.egg-info/
+  - findings/
+  - .claude/
+
+# Configurações de severidade
+fail-on:
+  # Falhar build em vulnerabilidades de severidade alta ou crítica
+  severity: high
+  # Falhar em licenças problemáticas
+  issues: true
+
+# Monitoramento contínuo (requer autenticação Snyk)
+monitor: true

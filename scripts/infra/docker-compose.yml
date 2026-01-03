@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  code-reviewer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: azure-code-reviewer
+    volumes:
+      - ./scripts:/app/scripts
+      - ./findings:/app/findings
+      - ./.env:/app/.env:ro
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - INLINE_SEVERITY_THRESHOLD=${INLINE_SEVERITY_THRESHOLD:-high}
+    command: python scripts/validate_setup.py --mock
+
+  # Test runner service
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: azure-code-reviewer-test
+    volumes:
+      - ./scripts:/app/scripts
+      - ./tests:/app/tests
+      - ./findings:/app/findings
+      - ./.env:/app/.env:ro
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    command: pytest tests/ -v
+
+  # Development service with shell access
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: azure-code-reviewer-dev
+    volumes:
+      - ./scripts:/app/scripts
+      - ./tests:/app/tests
+      - ./findings:/app/findings
+      - ./.env:/app/.env:ro
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    command: /bin/bash
+    stdin_open: true
+    tty: true

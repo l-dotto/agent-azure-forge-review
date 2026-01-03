@@ -1,0 +1,29 @@
+### {{ severity | upper }}: {{ title }}
+
+**Agent**: {{ agent_name }}
+**File**: `{{ file }}:{{ line }}`
+
+{{ description }}
+
+{% if exploit_scenario %}
+#### Exploit Scenario
+
+{{ exploit_scenario }}
+{% endif %}
+
+{% if recommendation %}
+#### Recommendation
+
+{{ recommendation }}
+{% endif %}
+
+{% if references %}
+#### References
+
+{% for ref in references %}
+- {{ ref }}
+{% endfor %}
+{% endif %}
+
+---
+*{{ agent_emoji }} Reported by {{ agent_name }}*
