@@ -1,37 +1,37 @@
-# 🏗️ PLANO DE IMPLEMENTAÇÃO: Sistema de Code Review Automatizado
+# PLANO DE IMPLEMENTAÇÃO: Sistema de Code Review Automatizado
 
-**Status:** 🟡 Em Progresso
+**Status:** Em Progresso
 **Data Início:** 2025-12-30
 **Estimativa:** 11 dias úteis (~2.5 semanas)
 **Versão:** 1.0 (MVP)
 
 ---
 
-## 📊 PROGRESSO GERAL
+## PROGRESSO GERAL
 
 ```
-Fase 1: Setup Básico              [✓] 100% (4/4 tasks) ✅
-Fase 2: Security Review Agent     [✓] 100% (5/5 tasks) ✅
-Fase 3: Design + Code Agents      [✓] 100% (4/4 tasks) ✅
-Fase 4: Normalizer                [✓] 100% (3/3 tasks) ✅
-Fase 5: PR Publisher              [✓] 100% (5/5 tasks) ✅
-Fase 6: Polish e Documentação     [✓] 100% (7/7 tasks) ✅
+Fase 1: Setup Básico              [✓] 100% (4/4 tasks)
+Fase 2: Security Review Agent     [✓] 100% (5/5 tasks)
+Fase 3: Design + Code Agents      [✓] 100% (4/4 tasks)
+Fase 4: Normalizer                [✓] 100% (3/3 tasks)
+Fase 5: PR Publisher              [✓] 100% (5/5 tasks)
+Fase 6: Polish e Documentação     [✓] 100% (7/7 tasks)
 
-Total: 28/28 tasks concluídas (100%) 🎉
+Total: 28/28 tasks concluídas (100%)
 ```
 
 ---
-## 🎯 VISÃO EXECUTIVA
+## VISÃO EXECUTIVA
 
 ### Objetivo
 Sistema automatizado de code review que:
-- ✅ Analisa Pull Requests no Azure DevOps
-- ✅ Executa 3 agents especializados (Sentinel/Atlas/Forge)
-- ✅ Publica comentários estruturados diretamente no PR
-- ✅ Threshold configurável para inline comments
-- ✅ Extensível para analytics futuros (sem refactor)
+- Analisa Pull Requests no Azure DevOps
+- Executa 3 agents especializados (Sentinel/Atlas/Forge)
+- Publica comentários estruturados diretamente no PR
+- Threshold configurável para inline comments
+- Extensível para analytics futuros (sem refactor)
 
-### 🚀 Facilidade de Adoção (Prioridade #1)
+### Facilidade de Adoção (Prioridade #1)
 
 **Objetivo:** Reduzir barreira de entrada para **< 5 minutos** de setup
 
@@ -41,25 +41,25 @@ Sistema automatizado de code review que:
    ```bash
    ./setup.sh  # Configura TUDO automaticamente
    ```
-   - ✅ Menu interativo (sem necessidade de ler docs primeiro)
-   - ✅ Validação em cada etapa (falha rápido, feedback claro)
-   - ✅ Rollback automático se algo der errado
+   - Menu interativo (sem necessidade de ler docs primeiro)
+   - Validação em cada etapa (falha rápido, feedback claro)
+   - Rollback automático se algo der errado
 
 2. **Testes Locais Antes do Deploy**
    ```bash
    make test-local  # Executa agents com mock PR
    ```
-   - ✅ Feedback imediato (sem esperar pipeline Azure)
-   - ✅ Debug facilitado (logs coloridos e estruturados)
-   - ✅ Demonstração visual (exemplo de findings)
+   - Feedback imediato (sem esperar pipeline Azure)
+   - Debug facilitado (logs coloridos e estruturados)
+   - Demonstração visual (exemplo de findings)
 
 3. **Docker para Isolamento**
    ```bash
    docker compose up  # Ambiente completo isolado
    ```
-   - ✅ Zero configuração de Python/dependências
-   - ✅ Portabilidade total
-   - ✅ Reset fácil (`docker compose down -v`)
+   - Zero configuração de Python/dependências
+   - Portabilidade total
+   - Reset fácil (`docker compose down -v`)
 
 4. **Documentação Progressiva**
    - README: Quick Start (5 min)
@@ -75,32 +75,32 @@ Sistema automatizado de code review que:
 
 #### Métricas de Adoção
 
-- ⏱️ Tempo médio de setup: **< 5 minutos**
-- 📊 Taxa de sucesso primeiro deploy: **> 90%**
-- 🐛 Issues abertos por problemas de configuração: **< 5% dos usuários**
-- 📖 Consultas ao suporte: **< 10% dos usuários**
+- Tempo médio de setup: **< 5 minutos**
+- Taxa de sucesso primeiro deploy: **> 90%**
+- Issues abertos por problemas de configuração: **< 5% dos usuários**
+- Consultas ao suporte: **< 10% dos usuários**
 
 ### Princípios de Design
 1. **PR é a fonte da verdade operacional** - Resultados em JSON permitem expansão futura
-2. **Branding técnico, não hype** - ❌ Nunca mencionar "AI/LLM/Claude" no PR
+2. **Branding técnico, não hype** - Nunca mencionar "AI/LLM/Claude" no PR
 3. **Simplicidade agora, extensibilidade depois** - MVP clean, V2 com dashboard
 4. **Open-source e atualidade** - Bibliotecas oficiais 2025
-5. **🆕 Facilidade de uso > Flexibilidade** - Defaults inteligentes, customização opcional
+5. **Facilidade de uso > Flexibilidade** - Defaults inteligentes, customização opcional
 
 ### Decisões Aprovadas
-- ✅ Trigger: **em cada push no PR** (feedback contínuo)
-- ✅ Inline comments: **configurável** via `INLINE_SEVERITY_THRESHOLD` (default: `high`)
-- ✅ Scope: **Todos os 3 agents** (Security, Design, Code)
-- ✅ Stack: **Python + Azure Pipelines YAML + Claude API**
-- ✅ 🆕 Setup: **Automação total** via `setup.sh` + Makefile + Docker
+- Trigger: **em cada push no PR** (feedback contínuo)
+- Inline comments: **configurável** via `INLINE_SEVERITY_THRESHOLD` (default: `high`)
+- Scope: **Todos os 3 agents** (Security, Design, Code)
+- Stack: **Python + Azure Pipelines YAML + Claude API**
+- Setup: **Automação total** via `setup.sh` + Makefile + Docker
 
 ---
 
-## 📝 FASE 1: Setup Básico (1 dia) — **FOCO: MÁXIMA FACILIDADE**
+## FASE 1: Setup Básico (1 dia) - FOCO: MÁXIMA FACILIDADE
 
 **Objetivo:** Setup em **5 minutos** com automação completa
 
-### 🚀 Quick Start (Para Usuários Finais)
+### Quick Start (Para Usuários Finais)
 
 ```bash
 # 1. Clone o repositório
@@ -135,12 +135,12 @@ make deploy-azure
   ```
 
   **Features:**
-  - ✅ Menu interativo com prompts claros
-  - ✅ Validação de cada etapa antes de prosseguir
-  - ✅ Rollback automático em caso de erro
-  - ✅ Logs coloridos e user-friendly
-  - ✅ Detecta se Azure CLI está autenticado
-  - ✅ Testa conexão com Anthropic API
+  - Menu interativo com prompts claros
+  - Validação de cada etapa antes de prosseguir
+  - Rollback automático em caso de erro
+  - Logs coloridos e user-friendly
+  - Detecta se Azure CLI está autenticado
+  - Testa conexão com Anthropic API
 
 - [x] **1.2** Criar `Makefile` com comandos simplificados ✅
   ```makefile
@@ -258,17 +258,17 @@ make deploy-azure
   ```
 
 **Critérios de Aceitação:**
-- ✅ Setup completo executado com **1 comando** (`./setup.sh`)
-- ✅ Validação automática de configuração (sem erros silenciosos)
-- ✅ Testes locais funcionando **antes** do deploy Azure
-- ✅ Pipeline roda sem erros (mesmo que vazio)
-- ✅ Documentação inline no código (comentários explicativos)
-- ✅ Mensagens de erro claras e acionáveis
-- ✅ Rollback automático se algo falhar
+- Setup completo executado com **1 comando** (`./setup.sh`)
+- Validação automática de configuração (sem erros silenciosos)
+- Testes locais funcionando **antes** do deploy Azure
+- Pipeline roda sem erros (mesmo que vazio)
+- Documentação inline no código (comentários explicativos)
+- Mensagens de erro claras e acionáveis
+- Rollback automático se algo falhar
 
 ---
 
-## 🛡️ FASE 2: Agent Runner - Security Review (2 dias)
+## FASE 2: Agent Runner - Security Review (2 dias)
 
 **Objetivo:** Primeiro agent funcionando end-to-end
 
@@ -303,13 +303,13 @@ make deploy-azure
   - Verificar `findings/security.json` gerado
 
 **Critérios de Aceitação:**
-- ✅ Agent executa e gera `findings/security.json`
-- ✅ JSON estruturado corretamente
-- ✅ Vulnerabilidades identificadas (teste com código vulnerável)
+- Agent executa e gera `findings/security.json`
+- JSON estruturado corretamente
+- Vulnerabilidades identificadas (teste com código vulnerável)
 
 ---
 
-## 🎨 FASE 3: Agents Design e Code Review (2 dias)
+## FASE 3: Agents Design e Code Review (2 dias)
 
 **Objetivo:** Completar orquestração dos 3 agents
 
@@ -339,13 +339,13 @@ make deploy-azure
   - Cada JSON reflete especialização do agent
 
 **Critérios de Aceitação:**
-- ✅ 3 JSONs gerados: `security.json`, `design.json`, `code.json`
-- ✅ Cada JSON reflete especialização do agent
-- ✅ Tempo de execução < 5 minutos (total)
+- 3 JSONs gerados: `security.json`, `design.json`, `code.json`
+- Cada JSON reflete especialização do agent
+- Tempo de execução < 5 minutos (total)
 
 ---
 
-## 🔄 FASE 4: Normalizer (1 dia) — ✅ CONCLUÍDA
+## FASE 4: Normalizer (1 dia) - CONCLUÍDA
 
 **Objetivo:** Consolidar resultados dos 3 agents
 
@@ -377,15 +377,15 @@ make deploy-azure
   ```
 
 **Critérios de Aceitação:**
-- ✅ `reviewResult.json` contém findings únicos (deduplicação funcional)
-- ✅ Ordenação correta por severidade (critical → low) e localização
-- ✅ Summary counts corretos (total, by_severity, by_agent, by_category)
-- ✅ Metadata com timestamp e estatísticas de deduplicação
-- ✅ Testes validados com fixtures mostrando 9 → 7 findings (2 duplicatas removidas)
+- `reviewResult.json` contém findings únicos (deduplicação funcional)
+- Ordenação correta por severidade (critical → low) e localização
+- Summary counts corretos (total, by_severity, by_agent, by_category)
+- Metadata com timestamp e estatísticas de deduplicação
+- Testes validados com fixtures mostrando 9 → 7 findings (2 duplicatas removidas)
 
 ---
 
-## 📤 FASE 5: PR Publisher (2 dias) — ✅ CONCLUÍDA
+## FASE 5: PR Publisher (2 dias) - CONCLUÍDA
 
 **Objetivo:** Publicar comentários no Azure DevOps PR
 
@@ -446,15 +446,15 @@ make deploy-azure
   - Verificar links para linhas de código funcionam
 
 **Critérios de Aceitação:**
-- ✅ Summary thread aparece no PR com info do threshold
-- ✅ Inline comments respeitam threshold configurado
-- ✅ Links para linhas de código funcionam
-- ✅ Markdown renderizado corretamente
-- ✅ Documentação explica como customizar threshold
+- Summary thread aparece no PR com info do threshold
+- Inline comments respeitam threshold configurado
+- Links para linhas de código funcionam
+- Markdown renderizado corretamente
+- Documentação explica como customizar threshold
 
 ---
 
-## 📚 FASE 6: Polish e Documentação (1 dia) — ✅ CONCLUÍDA
+## FASE 6: Polish e Documentação (1 dia) - CONCLUÍDA
 
 **Objetivo:** Finalizar MVP com foco em UX e facilidade de uso
 
@@ -689,32 +689,32 @@ make deploy-azure
   - `make serve-docs` - Serve docs localmente
 
 **Critérios de Aceitação:**
-- ✅ README com Quick Start profissional e engajador
-- ✅ TROUBLESHOOTING cobre problemas comuns com soluções práticas
-- ✅ DEPLOYMENT detalhado com procedimentos passo-a-passo
-- ✅ CUSTOMIZATION permite personalização sem alterar código core
-- ✅ Logs coloridos e informativos com Rich (implementado em normalize_results.py)
-- ✅ Makefile tem comandos para todos os casos de uso
-- ✅ Documentação estruturada e profissional para repositório público
+- README com Quick Start profissional e engajador
+- TROUBLESHOOTING cobre problemas comuns com soluções práticas
+- DEPLOYMENT detalhado com procedimentos passo-a-passo
+- CUSTOMIZATION permite personalização sem alterar código core
+- Logs coloridos e informativos com Rich (implementado em normalize_results.py)
+- Makefile tem comandos para todos os casos de uso
+- Documentação estruturada e profissional para repositório público
 
 ---
 
-## ✅ CHECKLIST DE DEPLOY
+## CHECKLIST DE DEPLOY
 
-### ⚡ Pré-Deploy (Automatizado via `make pre-deploy`)
+### Pré-Deploy (Automatizado via `make pre-deploy`)
 - [ ] Executar `make validate-config` (valida toda configuração)
 - [ ] Executar `make test-local` (testa agents localmente)
 - [ ] Revisar outputs de teste (findings mockados)
 - [ ] Verificar logs de validação (sem erros)
 
 ### Pré-Produção
-- [ ] Azure DevOps Variable Group criado ✅ (via `./setup.sh`)
-- [ ] ANTHROPIC_API_KEY adicionado (Secret) ✅ (via `./setup.sh`)
-- [ ] INLINE_SEVERITY_THRESHOLD configurado (default: `high`) ✅ (via pipeline)
-- [ ] Build Service com permissão `Contribute to Pull Requests` ✅ (via `./setup.sh`)
-- [ ] Branch Policy configurado (Build Validation para PRs) ✅ (via `make deploy-azure`)
-- [ ] Pipeline testado em branch de dev ✅ (automático no primeiro PR)
-- [ ] Documentar como usuários podem customizar threshold ✅ (README + inline docs)
+- [ ] Azure DevOps Variable Group criado (via `./setup.sh`)
+- [ ] ANTHROPIC_API_KEY adicionado (Secret) (via `./setup.sh`)
+- [ ] INLINE_SEVERITY_THRESHOLD configurado (default: `high`) (via pipeline)
+- [ ] Build Service com permissão `Contribute to Pull Requests` (via `./setup.sh`)
+- [ ] Branch Policy configurado (Build Validation para PRs) (via `make deploy-azure`)
+- [ ] Pipeline testado em branch de dev (automático no primeiro PR)
+- [ ] Documentar como usuários podem customizar threshold (README + inline docs)
 
 ### Produção
 - [ ] README.md atualizado (incluindo Quick Start)
@@ -728,16 +728,16 @@ make deploy-azure
 
 ---
 
-## 📊 MÉTRICAS DE SUCESSO (MVP)
+## MÉTRICAS DE SUCESSO (MVP)
 
-- ✅ Pipeline executa em 100% dos PRs (cobertura)
-- ✅ < 2 minutos de latência média
-- ✅ ≥ 80% de precisão (vulnerabilidades confirmadas / total reportado)
-- ✅ Zero vazamento de secrets em logs
+- Pipeline executa em 100% dos PRs (cobertura)
+- < 2 minutos de latência média
+- ≥ 80% de precisão (vulnerabilidades confirmadas / total reportado)
+- Zero vazamento de secrets em logs
 
 ---
 
-## 🔮 ROADMAP FUTURO
+## ROADMAP FUTURO
 
 ### V2.0 (Q2 2025)
 - Dashboard web (React + TypeScript)
@@ -756,7 +756,7 @@ make deploy-azure
 
 ---
 
-## 📈 ESTRATÉGIA DE ADOÇÃO E ROLLOUT
+## ESTRATÉGIA DE ADOÇÃO E ROLLOUT
 
 ### Fase Piloto (Semana 1)
 
@@ -806,17 +806,17 @@ make deploy-azure
 ### Métricas de Sucesso (Primeiros 30 dias)
 
 - **Adoção:**
-  - ✅ 80%+ dos times configuraram pipeline
-  - ✅ 50%+ dos PRs recebem comentários automatizados
+  - 80%+ dos times configuraram pipeline
+  - 50%+ dos PRs recebem comentários automatizados
 
 - **Qualidade:**
-  - ✅ Redução de 30%+ em bugs encontrados em produção
-  - ✅ 70%+ dos comentários marcados como úteis
+  - Redução de 30%+ em bugs encontrados em produção
+  - 70%+ dos comentários marcados como úteis
 
 - **Engajamento:**
-  - ✅ < 10% de desinstalações
-  - ✅ NPS > 50
-  - ✅ < 5 tickets de suporte por semana
+  - < 10% de desinstalações
+  - NPS > 50
+  - < 5 tickets de suporte por semana
 
 ### Plano de Contingência
 
@@ -844,33 +844,33 @@ Se adoção < 50% em 2 semanas:
 
 ---
 
-## 📝 NOTAS E DECISÕES
+## NOTAS E DECISÕES
 
 ### Decisão: Python vs Node.js vs Java
 **Escolhido:** Python (MVP)
-- ✅ Rápido para iteração
-- ✅ SDK oficial Anthropic
-- ✅ Fácil parsing markdown
-- ⚠️ Stack diferente do backend (Java 21)
-- 🔄 V2 pode migrar para Node.js/Java se necessário
+- Rápido para iteração
+- SDK oficial Anthropic
+- Fácil parsing markdown
+- Stack diferente do backend (Java 21)
+- V2 pode migrar para Node.js/Java se necessário
 
 ### Decisão: Sequencial vs Paralelo (Agents)
 **Escolhido:** Sequencial (MVP)
-- ✅ Simples de implementar
-- ✅ Evita rate limit Claude API
-- ⚠️ ~90s total (3 agents × 30s)
-- 🔄 V2 pode paralelizar com `asyncio`
+- Simples de implementar
+- Evita rate limit Claude API
+- ~90s total (3 agents × 30s)
+- V2 pode paralelizar com `asyncio`
 
 ### Decisão: Markdown Parsing vs Structured Output
 **Escolhido:** Markdown parsing (MVP)
-- ✅ Agents já retornam markdown
-- ✅ Sem refactor dos agents
-- ⚠️ Parsing com regex frágil
-- 🔄 V2: migrar para Claude Structured Output
+- Agents já retornam markdown
+- Sem refactor dos agents
+- Parsing com regex frágil
+- V2: migrar para Claude Structured Output
 
 ---
 
-## 🚨 RISCOS IDENTIFICADOS
+## RISCOS IDENTIFICADOS
 
 1. **Claude API Rate Limit** (Probabilidade: Média, Impacto: Alto)
    - Mitigação: Retry + backoff, tier pago, queue (V2)
@@ -883,7 +883,7 @@ Se adoção < 50% em 2 semanas:
 
 ---
 
-## 📞 CONTATO E SUPORTE
+## CONTATO E SUPORTE
 
 **Documentação Completa:** [/Users/premiersoft/.claude/plans/curried-kindling-parasol.md](file:///Users/premiersoft/.claude/plans/curried-kindling-parasol.md)
 
@@ -891,4 +891,4 @@ Se adoção < 50% em 2 semanas:
 
 ---
 
-**🎯 Próximos Passos:** Iniciar FASE 1 - Setup Básico
+**Próximos Passos:** Iniciar FASE 1 - Setup Básico

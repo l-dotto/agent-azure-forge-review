@@ -10,17 +10,17 @@ Automated code review that finds security vulnerabilities, design issues, and co
 
 ---
 
-## ✨ Why Azure Forge Review?
+## Why Azure Forge Review?
 
-- **⚡ Setup in Minutes** - One command deploys everything
-- **🎯 Finds Real Issues** - Security, design, and code quality analysis
-- **💬 Clear Feedback** - Actionable comments, not noise
-- **🔧 Easy to Customize** - Control what gets flagged
-- **📊 Works Your Way** - Integrates seamlessly with Azure DevOps
+- **Setup in Minutes** - One command deploys everything
+- **Finds Real Issues** - Security, design, and code quality analysis
+- **Clear Feedback** - Actionable comments, not noise
+- **Easy to Customize** - Control what gets flagged
+- **Works Your Way** - Integrates seamlessly with Azure DevOps
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -46,42 +46,42 @@ make test-local
 make deploy-azure
 ```
 
-**That's it!** Your next PR will automatically get reviewed. ✅
+**That's it!** Your next PR will automatically get reviewed.
 
 ---
 
-## 🎬 How It Works
+## How It Works
 
 When you create or update a Pull Request:
 
 1. **Azure Pipeline Triggers** automatically
 2. **Three Specialized Agents** analyze your code in parallel:
-   - **🛡️ Sentinel** - Security vulnerabilities (SQL injection, XSS, auth bypass)
-   - **🎨 Atlas** - Design quality (UX, accessibility, visual consistency)
-   - **🧠 Forge** - Code quality (architecture, performance, maintainability)
+   - **Sentinel** - Security vulnerabilities (SQL injection, XSS, auth bypass)
+   - **Atlas** - Design quality (UX, accessibility, visual consistency)
+   - **Forge** - Code quality (architecture, performance, maintainability)
 3. **Results Posted** - Summary + inline comments appear in your PR
 
 ### Example: What You'll See
 
 **Summary Comment:**
 ```markdown
-🔍 Code Review Complete
+Code Review Complete
 
-📊 Analysis Summary:
-• 🛡️ Sentinel: 2 critical, 1 high
-• 🎨 Atlas: 0 critical, 2 medium
-• 🧠 Forge: 1 high, 3 medium
+Analysis Summary:
+- Sentinel: 2 critical, 1 high
+- Atlas: 0 critical, 2 medium
+- Forge: 1 high, 3 medium
 
-💬 Inline Comments: 3 (threshold: high)
-📝 Total Findings: 9
+Inline Comments: 3 (threshold: high)
+Total Findings: 9
 
-⚙️ Current threshold: high
+Current threshold: high
 Change in azure-pipelines.yml to show more/fewer inline comments
 ```
 
 **Inline Comment Example:**
 ```markdown
-🛡️ CRITICAL - SQL Injection Vulnerability
+CRITICAL - SQL Injection Vulnerability
 
 **File:** src/api/users.py:42
 **Agent:** Sentinel (Security Review)
@@ -101,12 +101,12 @@ cursor.execute("SELECT * FROM users WHERE name = ?", (username,))
 ```
 
 **References:**
-• [OWASP SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)
+- [OWASP SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)
 ```
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Adjust Inline Comment Threshold
 
@@ -135,7 +135,7 @@ See [docs/CUSTOMIZATION.md](docs/CUSTOMIZATION.md) for detailed customization op
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 PR Created/Updated
@@ -144,8 +144,7 @@ Azure Pipeline (azure-pipelines.yml)
        ↓
 ┌──────┼──────┬─────────┐
 ↓      ↓      ↓         ↓
-🛡️      🎨      🧠       git diff
-Sentinel Atlas Forge     ↓
+Sentinel Atlas Forge   git diff
 ↓      ↓      ↓         ↓
 security design code → Normalizer
 .json  .json  .json     ↓
@@ -171,7 +170,7 @@ security design code → Normalizer
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 | Document | Description |
 |----------|-------------|
@@ -182,7 +181,7 @@ security design code → Normalizer
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### No comments appear in my PR
 
@@ -221,7 +220,7 @@ make fix-permissions
 
 ---
 
-## ❓ FAQ
+## FAQ
 
 <details>
 <summary><strong>Does this replace human code review?</strong></summary>
@@ -279,62 +278,62 @@ Currently Azure DevOps only. GitHub Actions support is planned for V2.0. The cor
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 ### V1.0 - MVP (Current)
-- ✅ Three specialized agents (Sentinel, Atlas, Forge)
-- ✅ Azure DevOps PR integration
-- ✅ Configurable inline comment threshold
-- ✅ Automated setup and deployment
-- ✅ Finding deduplication and normalization
+- Three specialized agents (Sentinel, Atlas, Forge)
+- Azure DevOps PR integration
+- Configurable inline comment threshold
+- Automated setup and deployment
+- Finding deduplication and normalization
 
 ### V2.0 - Analytics & Dashboard (Q2 2025)
-- 📊 Web dashboard (React + TypeScript)
-- 📈 Historical metrics and trends
-- 💾 PostgreSQL persistence
-- 🔔 Slack/Teams notifications
-- 🔌 REST API for findings
-- 🐙 GitHub Actions support
+- Web dashboard (React + TypeScript)
+- Historical metrics and trends
+- PostgreSQL persistence
+- Slack/Teams notifications
+- REST API for findings
+- GitHub Actions support
 
 ### V3.0 - Advanced Features (Q3 2025)
-- 🤖 Auto-fix mode (generates fix PRs)
-- 🎓 Fine-tuning with project-specific examples
-- 🔗 SonarQube/Checkmarx integration
-- 📦 Multi-repository support
-- 🧪 Test generation suggestions
+- Auto-fix mode (generates fix PRs)
+- Fine-tuning with project-specific examples
+- SonarQube/Checkmarx integration
+- Multi-repository support
+- Test generation suggestions
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Areas where you can help:
 
-- **🔍 Agent Improvements** - Enhance detection accuracy
-- **🎨 Templates** - Better comment formatting
-- **📖 Documentation** - Tutorials, examples, translations
-- **🐛 Bug Fixes** - Issues, edge cases, performance
-- **✨ New Features** - Dashboard, integrations, analytics
+- **Agent Improvements** - Enhance detection accuracy
+- **Templates** - Better comment formatting
+- **Documentation** - Tutorials, examples, translations
+- **Bug Fixes** - Issues, edge cases, performance
+- **New Features** - Dashboard, integrations, analytics
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ---
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-## 💬 Support & Community
+## Support & Community
 
-- **📖 Documentation**: [docs/](docs/)
-- **🐛 Report Issues**: [GitHub Issues](https://github.com/your-org/azure-forge-review/issues)
-- **💡 Discussions**: [GitHub Discussions](https://github.com/your-org/azure-forge-review/discussions)
-- **📧 Email**: support@yourorg.com
+- **Documentation**: [docs/](docs/)
+- **Report Issues**: [GitHub Issues](https://github.com/your-org/azure-forge-review/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/azure-forge-review/discussions)
+- **Email**: support@yourorg.com
 
 ---
 
-## 🙏 Credits
+## Credits
 
 Built with:
 - [**Anthropic Claude**](https://www.anthropic.com/) - Advanced code analysis
@@ -347,8 +346,8 @@ Built with:
 
 <div align="center">
 
-**Made with precision, not hype. 🎯**
+**Made with precision, not hype.**
 
-[Get Started](#-quick-start) • [Documentation](docs/) • [Contributing](CONTRIBUTING.md)
+[Get Started](#quick-start) • [Documentation](docs/) • [Contributing](CONTRIBUTING.md)
 
 </div>

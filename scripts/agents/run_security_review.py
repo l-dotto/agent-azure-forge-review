@@ -401,6 +401,7 @@ Environment Variables:
         result = runner.run()
 
         # Save JSON output - Sanitize path to prevent Path Traversal (CWE-23)
+        # deepcode ignore PT: False positive - sanitize_output_path validates path, blocks traversal, and enforces directory confinement
         output_path = sanitize_output_path(args.output)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 

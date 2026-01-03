@@ -42,23 +42,23 @@ Este projeto segue regras rigorosas de qualidade, segurança e governança.
 ## Regras Críticas (Resumo)
 
 ### Git & Commits
-- ❌ **NUNCA** citar Claude, AI ou incluir "Generated with Claude Code"
-- ❌ **NUNCA** commitar direto em master/main
-- ✅ Sempre criar feature branch: `git checkout -b feature/nome`
-- ✅ Conventional Commits: `feat:`, `fix:`, `chore:`, `refactor:`
-- ✅ Commits pequenos (< 400 linhas) e focados
+- **NUNCA** citar Claude, AI ou incluir "Generated with Claude Code"
+- **NUNCA** commitar direto em master/main
+- Sempre criar feature branch: `git checkout -b feature/nome`
+- Conventional Commits: `feat:`, `fix:`, `chore:`, `refactor:`
+- Commits pequenos (< 400 linhas) e focados
 
 ### Segurança
-- ❌ **NUNCA** incluir secrets, tokens, chaves ou dados sensíveis
-- ✅ Validar e sanitizar **TODAS** as entradas
-- ✅ Proteger contra: SQL Injection, XSS, CSRF
-- ✅ Mascarar dados sensíveis em logs (CPF, cartão, senhas)
+- **NUNCA** incluir secrets, tokens, chaves ou dados sensíveis
+- Validar e sanitizar **TODAS** as entradas
+- Proteger contra: SQL Injection, XSS, CSRF
+- Mascarar dados sensíveis em logs (CPF, cartão, senhas)
 
 ### Qualidade
-- ✅ Code review automático antes de commits
-- ✅ Testes obrigatórios para lógica crítica
-- ✅ Clean Architecture (separation of concerns)
-- ✅ Documentação clara em PRs
+- Code review automático antes de commits
+- Testes obrigatórios para lógica crítica
+- Clean Architecture (separation of concerns)
+- Documentação clara em PRs
 
 ## Workflow de Desenvolvimento
 
