@@ -50,6 +50,12 @@ class SecurityReviewRunner:
     DEFAULT_MAX_TOKENS = 16000
     DEFAULT_TEMPERATURE = 0.0
 
+    # Whitelist of allowed git subcommands for security
+    ALLOWED_GIT_COMMANDS = {
+        'status', 'diff', 'log', 'show', 'branch',
+        'remote', 'rev-parse', 'describe', 'ls-files'
+    }
+
     def __init__(
         self,
         provider: str = 'anthropic',
@@ -106,11 +112,43 @@ class SecurityReviewRunner:
         return content
 
     def _execute_git_command(self, cmd: str) -> str:
-        """Execute a git command and return output"""
+        """Execute a git command and return output
+
+        Args:
+            cmd: Git command string (e.g., 'git status')
+
+        Returns:
+            Command output as string
+
+        Security:
+            - Commands are validated against ALLOWED_GIT_COMMANDS whitelist
+            - Arguments are split with shlex to prevent injection
+            - Executed without shell=True to prevent shell metacharacter exploits
+        """
+        import shlex
+
         try:
+            # Split command into arguments safely
+            args = shlex.split(cmd)
+
+            # Validate it's a git command
+            if not args or args[0] != 'git':
+                raise ValueError(f"Only git commands are allowed: {cmd}")
+
+            # Validate subcommand is in whitelist
+            if len(args) < 2:
+                raise ValueError(f"Git command missing subcommand: {cmd}")
+
+            git_subcommand = args[1]
+            if git_subcommand not in self.ALLOWED_GIT_COMMANDS:
+                raise ValueError(
+                    f"Git subcommand '{git_subcommand}' not in whitelist. "
+                    f"Allowed: {', '.join(sorted(self.ALLOWED_GIT_COMMANDS))}"
+                )
+
             result = subprocess.run(
-                cmd,
-                shell=True,
+                args,
+                shell=False,  # Safe execution without shell
                 capture_output=True,
                 text=True,
                 check=True
@@ -119,6 +157,9 @@ class SecurityReviewRunner:
         except subprocess.CalledProcessError as e:
             console.print(f"[yellow]Warning: Git command failed: {cmd}[/yellow]")
             return f"(command failed: {e})"
+        except ValueError as e:
+            console.print(f"[red]Error: {e}[/red]")
+            return f"(invalid command: {e})"
 
     def _substitute_placeholders(self, prompt: str, diff_result: Any) -> str:
         """

@@ -8,7 +8,7 @@ into structured JSON format.
 
 import re
 import json
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Union
 from dataclasses import dataclass, asdict
 from enum import Enum
 
@@ -66,6 +66,81 @@ class SecurityMarkdownParser:
     # Pattern: * Recommendation: ...
     RECOMMENDATION_PATTERN = r'^\*\s+Recommendation:\s+(.+)'
 
+    def _skip_empty_lines(self, lines: List[str], index: int) -> int:
+        """Skip empty lines and return new index"""
+        while index < len(lines) and not lines[index].strip():
+            index += 1
+        return index
+
+    def _parse_metadata_line(self, line: str) -> Optional[Dict[str, str]]:
+        """Parse a single metadata line and return field name and value"""
+        patterns = {
+            'severity': self.SEVERITY_PATTERN,
+            'description': self.DESCRIPTION_PATTERN,
+            'exploit_scenario': self.EXPLOIT_PATTERN,
+            'recommendation': self.RECOMMENDATION_PATTERN
+        }
+
+        for field_name, pattern in patterns.items():
+            match = re.match(pattern, line)
+            if match:
+                value = match.group(1)
+                if field_name == 'severity':
+                    value = value.lower()
+                else:
+                    value = value.strip()
+                return {'field': field_name, 'value': value}
+
+        return None
+
+    def _parse_metadata_section(self, lines: List[str], start_index: int) -> tuple[Dict[str, Optional[str]], int]:
+        """Parse metadata section and return metadata dict and new index"""
+        metadata: Dict[str, Optional[str]] = {
+            'severity': None,
+            'description': None,
+            'exploit_scenario': None,
+            'recommendation': None
+        }
+
+        index = self._skip_empty_lines(lines, start_index)
+
+        while index < len(lines):
+            meta_line = lines[index].strip()
+
+            if not meta_line or not meta_line.startswith('*'):
+                break
+
+            parsed = self._parse_metadata_line(meta_line)
+            if parsed:
+                metadata[parsed['field']] = parsed['value']
+
+            index += 1
+
+        return metadata, index
+
+    def _create_finding_from_metadata(
+        self,
+        category: str,
+        file_path: str,
+        line_number: int,
+        metadata: Dict[str, Optional[str]]
+    ) -> Optional[Finding]:
+        """Create Finding object from metadata if all required fields are present"""
+        if not all([metadata['severity'], metadata['description'], metadata['recommendation']]):
+            return None
+
+        return Finding(
+            agent=AgentType.SECURITY.value,
+            severity=metadata['severity'],  # type: ignore
+            category=category.lower().replace(' ', '_'),
+            title=f"{category}: {file_path}:{line_number}",
+            file_path=file_path,
+            line_number=line_number,
+            description=metadata['description'],  # type: ignore
+            recommendation=metadata['recommendation'],  # type: ignore
+            exploit_scenario=metadata['exploit_scenario']
+        )
+
     def parse(self, markdown: str) -> List[Finding]:
         """
         Parse security review markdown into structured findings
@@ -93,72 +168,20 @@ class SecurityMarkdownParser:
         while i < len(lines):
             line = lines[i].strip()
 
-            # Look for vulnerability header
             header_match = re.match(self.VULN_HEADER_PATTERN, line)
             if header_match:
                 category = header_match.group(1).strip()
                 file_path = header_match.group(2).strip()
                 line_number = int(header_match.group(3))
 
-                # Parse the following metadata lines
-                i += 1
-                severity = None
-                description = None
-                exploit_scenario = None
-                recommendation = None
+                metadata, i = self._parse_metadata_section(lines, i + 1)
+                finding = self._create_finding_from_metadata(
+                    category, file_path, line_number, metadata
+                )
 
-                # Skip empty lines after header
-                while i < len(lines) and not lines[i].strip():
-                    i += 1
-
-                # Parse metadata (lines starting with *)
-                while i < len(lines):
-                    meta_line = lines[i].strip()
-
-                    if not meta_line or not meta_line.startswith('*'):
-                        break
-
-                    severity_match = re.match(self.SEVERITY_PATTERN, meta_line)
-                    if severity_match:
-                        severity = severity_match.group(1).lower()
-                        i += 1
-                        continue
-
-                    desc_match = re.match(self.DESCRIPTION_PATTERN, meta_line)
-                    if desc_match:
-                        description = desc_match.group(1).strip()
-                        i += 1
-                        continue
-
-                    exploit_match = re.match(self.EXPLOIT_PATTERN, meta_line)
-                    if exploit_match:
-                        exploit_scenario = exploit_match.group(1).strip()
-                        i += 1
-                        continue
-
-                    rec_match = re.match(self.RECOMMENDATION_PATTERN, meta_line)
-                    if rec_match:
-                        recommendation = rec_match.group(1).strip()
-                        i += 1
-                        continue
-
-                    # Unknown metadata line, skip
-                    i += 1
-
-                # Create finding if we have required fields
-                if severity and description and recommendation:
-                    finding = Finding(
-                        agent=AgentType.SECURITY.value,
-                        severity=severity,
-                        category=category.lower().replace(' ', '_'),
-                        title=f"{category}: {file_path}:{line_number}",
-                        file_path=file_path,
-                        line_number=line_number,
-                        description=description,
-                        recommendation=recommendation,
-                        exploit_scenario=exploit_scenario
-                    )
+                if finding:
                     findings.append(finding)
+                continue
 
             i += 1
 
@@ -170,6 +193,84 @@ class CodeReviewMarkdownParser:
 
     # Pattern: #### [Critical/Blocker] `/path/to/file.py:42` - Issue Title
     ISSUE_HEADER_PATTERN = r'^#{2,4}\s+\[(Critical|Blocker|Improvement|Nit)\]\s+`([^:]+):(\d+(?:-\d+)?)`\s+-\s+(.+)'
+
+    def _map_severity(self, severity_raw: str) -> str:
+        """Map severity string to standardized severity level"""
+        severity_map = {
+            'critical': Severity.CRITICAL,
+            'blocker': Severity.CRITICAL,
+            'improvement': Severity.MEDIUM,
+            'nit': Severity.LOW
+        }
+        return severity_map.get(severity_raw.lower(), Severity.MEDIUM).value
+
+    def _parse_line_number(self, line_range: str) -> Optional[int]:
+        """Parse line number from range string (e.g., '42' or '42-51')"""
+        if not line_range:
+            return None
+        return int(line_range.split('-')[0])
+
+    def _should_stop_parsing_content(self, line: str) -> bool:
+        """Check if we should stop parsing content section"""
+        return bool(re.match(self.ISSUE_HEADER_PATTERN, line) or line.startswith('###'))
+
+    def _process_content_line(
+        self,
+        line: str,
+        current_section: Optional[str],
+        description_parts: List[str],
+        recommendation_parts: List[str]
+    ) -> Optional[str]:
+        """Process a content line and return updated current_section"""
+        if line.startswith('**Issue:**'):
+            desc_text = line.replace('**Issue:**', '').strip()
+            if desc_text:
+                description_parts.append(desc_text)
+            return 'description'
+
+        if line.startswith('**Recommendation:**'):
+            rec_text = line.replace('**Recommendation:**', '').strip()
+            if rec_text:
+                recommendation_parts.append(rec_text)
+            return 'recommendation'
+
+        if current_section == 'description':
+            description_parts.append(line)
+        elif current_section == 'recommendation':
+            recommendation_parts.append(line)
+
+        return current_section
+
+    def _parse_content_section(self, lines: List[str], start_index: int) -> tuple[str, str, int]:
+        """Parse content section and return description, recommendation, and new index"""
+        description_parts: List[str] = []
+        recommendation_parts: List[str] = []
+        current_section: Optional[str] = None
+        index = start_index
+
+        while index < len(lines):
+            content_line = lines[index].strip()
+
+            if not content_line:
+                index += 1
+                continue
+
+            if self._should_stop_parsing_content(content_line):
+                break
+
+            current_section = self._process_content_line(
+                content_line,
+                current_section,
+                description_parts,
+                recommendation_parts
+            )
+
+            index += 1
+
+        description = ' '.join(description_parts) if description_parts else ""
+        recommendation = ' '.join(recommendation_parts) if recommendation_parts else ""
+
+        return description, recommendation, index
 
     def parse(self, markdown: str) -> List[Finding]:
         """
@@ -206,58 +307,10 @@ class CodeReviewMarkdownParser:
                 line_range = header_match.group(3).strip()
                 title = header_match.group(4).strip()
 
-                # Map severity
-                severity_map = {
-                    'critical': Severity.CRITICAL,
-                    'blocker': Severity.CRITICAL,
-                    'improvement': Severity.MEDIUM,
-                    'nit': Severity.LOW
-                }
-                severity = severity_map.get(severity_raw.lower(), Severity.MEDIUM).value
+                severity = self._map_severity(severity_raw)
+                line_number = self._parse_line_number(line_range)
 
-                # Parse line number (handle ranges like "42-51")
-                line_number = int(line_range.split('-')[0]) if line_range else None
-
-                # Parse description and recommendation
-                i += 1
-                description_parts = []
-                recommendation_parts = []
-                current_section = None
-
-                while i < len(lines):
-                    content_line = lines[i].strip()
-
-                    if not content_line:
-                        i += 1
-                        continue
-
-                    # Check for next finding
-                    if re.match(self.ISSUE_HEADER_PATTERN, content_line):
-                        break
-
-                    # Check for main sections
-                    if content_line.startswith('###'):
-                        break
-
-                    if content_line.startswith('**Issue:**'):
-                        current_section = 'description'
-                        desc_text = content_line.replace('**Issue:**', '').strip()
-                        if desc_text:
-                            description_parts.append(desc_text)
-                    elif content_line.startswith('**Recommendation:**'):
-                        current_section = 'recommendation'
-                        rec_text = content_line.replace('**Recommendation:**', '').strip()
-                        if rec_text:
-                            recommendation_parts.append(rec_text)
-                    elif current_section == 'description':
-                        description_parts.append(content_line)
-                    elif current_section == 'recommendation':
-                        recommendation_parts.append(content_line)
-
-                    i += 1
-
-                description = ' '.join(description_parts) if description_parts else title
-                recommendation = ' '.join(recommendation_parts) if recommendation_parts else "See code review comments"
+                description, recommendation, i = self._parse_content_section(lines, i + 1)
 
                 finding = Finding(
                     agent=AgentType.CODE.value,
@@ -266,8 +319,8 @@ class CodeReviewMarkdownParser:
                     title=title,
                     file_path=file_path,
                     line_number=line_number,
-                    description=description,
-                    recommendation=recommendation
+                    description=description if description else title,
+                    recommendation=recommendation if recommendation else "See code review comments"
                 )
                 findings.append(finding)
                 continue
@@ -329,6 +382,7 @@ def parse_agent_output(markdown: str, agent_type: str) -> List[Finding]:
     """
     agent_type = agent_type.lower()
 
+    parser: Union[SecurityMarkdownParser, DesignReviewMarkdownParser, CodeReviewMarkdownParser]
     if agent_type in ['security', 'sentinel']:
         parser = SecurityMarkdownParser()
     elif agent_type in ['design', 'atlas']:
