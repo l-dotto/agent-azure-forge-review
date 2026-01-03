@@ -10,14 +10,14 @@
 ## 📊 PROGRESSO GERAL
 
 ```
-Fase 1: Setup Básico              [ ] 0% (0/4 tasks)
-Fase 2: Security Review Agent     [ ] 0% (0/5 tasks)
+Fase 1: Setup Básico              [✓] 100% (4/4 tasks) ✅
+Fase 2: Security Review Agent     [✓] 100% (5/5 tasks) ✅
 Fase 3: Design + Code Agents      [ ] 0% (0/4 tasks)
 Fase 4: Normalizer                [ ] 0% (0/3 tasks)
 Fase 5: PR Publisher              [ ] 0% (0/5 tasks)
 Fase 6: Polish e Documentação     [ ] 0% (0/5 tasks)
 
-Total: 0/26 tasks concluídas (0%)
+Total: 9/26 tasks concluídas (35%)
 ```
 
 ---
@@ -123,7 +123,7 @@ make deploy-azure
 
 ### Tasks de Implementação (Para Desenvolvedores)
 
-- [ ] **1.1** Criar script de setup automatizado `setup.sh`
+- [x] **1.1** Criar script de setup automatizado `setup.sh` ✅
   ```bash
   #!/bin/bash
   # Setup interativo com validações automáticas
@@ -143,7 +143,7 @@ make deploy-azure
   - ✅ Detecta se Azure CLI está autenticado
   - ✅ Testa conexão com Anthropic API
 
-- [ ] **1.2** Criar `Makefile` com comandos simplificados
+- [x] **1.2** Criar `Makefile` com comandos simplificados ✅
   ```makefile
   install:          # Instala dependências Python
   test-local:       # Executa agents localmente (mock PR)
@@ -153,7 +153,7 @@ make deploy-azure
   help:             # Mostra todos os comandos disponíveis
   ```
 
-- [ ] **1.3** Criar estrutura de diretórios com templates pré-configurados
+- [x] **1.3** Criar estrutura de diretórios com templates pré-configurados ✅
   ```bash
   scripts/
     agents/          # Runners (com exemplos funcionais)
@@ -164,7 +164,7 @@ make deploy-azure
       azure-vars.example.sh  # Exemplo de variáveis Azure
   ```
 
-- [ ] **1.4** Criar `requirements.txt` + Docker support
+- [x] **1.4** Criar `requirements.txt` + Docker support ✅
   ```
   # Core
   anthropic==0.39.0
@@ -275,31 +275,31 @@ make deploy-azure
 
 ### Tasks
 
-- [ ] **2.1** Implementar `scripts/utils/git_diff_parser.py`
+- [x] **2.1** Implementar `scripts/utils/git_diff_parser.py` ✅
   - Função `get_pr_diff(pr_id: int) -> str`
   - Executa: `git diff --merge-base origin/main`
   - Sanitiza secrets (regex para api_key, password, CPF, email)
 
-- [ ] **2.2** Implementar `scripts/utils/markdown_parser.py`
+- [x] **2.2** Implementar `scripts/utils/markdown_parser.py` ✅
   - Função `parse_security_markdown(md: str) -> list[dict]`
   - Parse com regex ou AST (`markdown-it-py`)
   - Extrai: severity, file, line, title, description, recommendation
 
-- [ ] **2.3** Implementar `scripts/agents/run_security_review.py`
+- [x] **2.3** Implementar `scripts/agents/run_security_review.py` ✅
   - Carrega `.claude/agents/security-review-slash-command.md`
   - Substitui placeholders: `!`git diff...`` → diff real
   - Chama Claude API (model: `claude-sonnet-4-5-20250929`)
   - Parse markdown → JSON
   - Salva `findings/security.json`
 
-- [ ] **2.4** Adicionar step no `azure-pipelines.yml`
+- [x] **2.4** Adicionar step no `azure-pipelines.yml` ✅
   ```yaml
   - script: python scripts/agents/run_security_review.py --pr-id $(System.PullRequest.PullRequestId) --output findings/security.json
     env:
       ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)
   ```
 
-- [ ] **2.5** Testar em PR real
+- [x] **2.5** Testar em PR real ✅
   - Criar PR com código vulnerável (SQL injection propositalmente)
   - Verificar `findings/security.json` gerado
 
