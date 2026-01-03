@@ -193,13 +193,18 @@ stages:
 
           - download: current
             artifact: review-result
+            displayName: 'Download Review Results'
 
           - script: |
-              echo "PR publishing will be implemented in Phase 5"
-              echo "PR ID: $(System.PullRequest.PullRequestId)"
-              echo "Threshold: $(INLINE_SEVERITY_THRESHOLD)"
-              echo "Repository: $(Build.Repository.Name)"
-            displayName: 'Publish to Pull Request'
+              mkdir -p findings
+              cp $(Pipeline.Workspace)/review-result/reviewResult.json findings/reviewResult.json
+              echo "Review results copied to findings/"
+            displayName: 'Prepare Review Results'
+
+          - script: |
+              python scripts/publish_to_pr.py
+            displayName: '📝 Publish Review to PR'
             env:
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
               INLINE_SEVERITY_THRESHOLD: $(INLINE_SEVERITY_THRESHOLD)
+              REVIEW_RESULTS_PATH: findings/reviewResult.json

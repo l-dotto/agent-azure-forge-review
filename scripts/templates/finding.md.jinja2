@@ -1,29 +1,30 @@
-### {{ severity | upper }}: {{ title }}
-
-**Agent**: {{ agent_name }}
-**File**: `{{ file }}:{{ line }}`
+{{ severity_emoji }} **{{ severity | upper }}: {{ title }}**
 
 {{ description }}
 
 {% if exploit_scenario %}
-#### Exploit Scenario
-
+**⚠️ Exploit Scenario:**
 {{ exploit_scenario }}
 {% endif %}
 
 {% if recommendation %}
-#### Recommendation
-
+**💡 Recommendation:**
 {{ recommendation }}
 {% endif %}
 
-{% if references %}
-#### References
+{% if code_snippet %}
+**Code:**
+```{{ language or '' }}
+{{ code_snippet }}
+```
+{% endif %}
 
+{% if references %}
+**📚 References:**
 {% for ref in references %}
 - {{ ref }}
 {% endfor %}
 {% endif %}
 
 ---
-*{{ agent_emoji }} Reported by {{ agent_name }}*
+<sub>{{ agent_emoji }} Reported by **{{ source }}** | Confidence: {{ confidence }}%</sub>
