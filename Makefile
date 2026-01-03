@@ -1,7 +1,7 @@
 .PHONY: help install test lint format clean test-local validate-config deploy-azure \
         debug-last-run collect-diagnostics validate-api-key set-threshold fix-permissions \
         reset-config watch-local benchmark pre-deploy final-check docker-build docker-run docker-test \
-        security security-snyk security-sonar security-all security-report
+        security security-snyk security-sonar security-all security-report docs serve-docs check-docs
 
 help:
 	@echo "Azure Code Reviewer - Development Commands"
@@ -46,6 +46,11 @@ help:
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean             - Remove generated files"
+	@echo ""
+	@echo "Documentation:"
+	@echo "  make docs              - Validate all documentation"
+	@echo "  make check-docs        - Check documentation for broken links"
+	@echo "  make serve-docs        - Serve documentation locally (port 8000)"
 
 install:
 	@echo "Installing dependencies..."
@@ -278,3 +283,32 @@ security-report:
 	@echo "For detailed reports:"
 	@echo "  - Snyk: snyk test --file=requirements.txt"
 	@echo "  - SonarQube: Check dashboard at $(SONAR_HOST_URL)"
+
+# Documentation targets
+docs: check-docs
+	@echo "Documentation validation complete"
+
+check-docs:
+	@echo "Checking documentation for issues..."
+	@echo "Checking README.md..."
+	@test -f README.md || (echo "ERROR: README.md not found" && exit 1)
+	@grep -q "Quick Start" README.md || (echo "WARNING: README.md missing Quick Start section" && exit 1)
+	@echo "Checking TROUBLESHOOTING.md..."
+	@test -f docs/TROUBLESHOOTING.md || (echo "ERROR: docs/TROUBLESHOOTING.md not found" && exit 1)
+	@echo "Checking DEPLOYMENT.md..."
+	@test -f docs/DEPLOYMENT.md || (echo "ERROR: docs/DEPLOYMENT.md not found" && exit 1)
+	@echo "Checking CUSTOMIZATION.md..."
+	@test -f docs/CUSTOMIZATION.md || (echo "ERROR: docs/CUSTOMIZATION.md not found" && exit 1)
+	@echo "Checking for broken internal links..."
+	@grep -r "\[.*\](.*\.md)" README.md docs/ | grep -v "http" | while read line; do \
+		file=$$(echo $$line | sed -E 's/.*\]\((.*\.md).*/\1/'); \
+		if [ ! -f "$$file" ] && [ ! -f "docs/$$file" ]; then \
+			echo "WARNING: Broken link found: $$file"; \
+		fi; \
+	done || true
+	@echo "✅ Documentation check complete"
+
+serve-docs:
+	@echo "Serving documentation on http://localhost:8000"
+	@echo "Press Ctrl+C to stop"
+	@python -m http.server 8000 --directory .
