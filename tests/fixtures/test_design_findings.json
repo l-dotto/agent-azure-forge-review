@@ -1,0 +1,22 @@
+[
+  {
+    "agent": "atlas",
+    "severity": "medium",
+    "category": "accessibility",
+    "title": "Missing Alt Text",
+    "file_path": "templates/user_profile.html",
+    "line_number": 22,
+    "description": "Profile image missing alt attribute (WCAG 2.1 Level A violation)",
+    "recommendation": "Add alt='User profile photo' to img tag"
+  },
+  {
+    "agent": "atlas",
+    "severity": "low",
+    "category": "ux",
+    "title": "Inconsistent Button Styling",
+    "file_path": "static/css/buttons.css",
+    "line_number": 10,
+    "description": "Primary button uses different padding than design system",
+    "recommendation": "Update to match design tokens: padding: 12px 24px"
+  }
+]

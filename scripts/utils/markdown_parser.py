@@ -9,8 +9,9 @@ into structured JSON format.
 import re
 import json
 from typing import Optional, Dict, List, Any, Union
-from dataclasses import dataclass, asdict
 from enum import Enum
+
+from .models import Finding
 
 
 class Severity(str, Enum):
@@ -27,25 +28,6 @@ class AgentType(str, Enum):
     SECURITY = "sentinel"
     DESIGN = "atlas"
     CODE = "forge"
-
-
-@dataclass
-class Finding:
-    """Structured finding from an agent"""
-    agent: str
-    severity: str
-    category: str
-    title: str
-    file_path: str
-    line_number: Optional[int]
-    description: str
-    recommendation: str
-    exploit_scenario: Optional[str] = None
-    confidence: Optional[float] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary"""
-        return {k: v for k, v in asdict(self).items() if v is not None}
 
 
 class SecurityMarkdownParser:

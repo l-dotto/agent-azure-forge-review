@@ -13,11 +13,11 @@
 Fase 1: Setup Básico              [✓] 100% (4/4 tasks) ✅
 Fase 2: Security Review Agent     [✓] 100% (5/5 tasks) ✅
 Fase 3: Design + Code Agents      [✓] 100% (4/4 tasks) ✅
-Fase 4: Normalizer                [ ] 0% (0/3 tasks)
+Fase 4: Normalizer                [✓] 100% (3/3 tasks) ✅
 Fase 5: PR Publisher              [ ] 0% (0/5 tasks)
 Fase 6: Polish e Documentação     [ ] 0% (0/5 tasks)
 
-Total: 13/26 tasks concluídas (50%)
+Total: 16/26 tasks concluídas (62%)
 ```
 
 ---
@@ -345,33 +345,43 @@ make deploy-azure
 
 ---
 
-## 🔄 FASE 4: Normalizer (1 dia)
+## 🔄 FASE 4: Normalizer (1 dia) — ✅ CONCLUÍDA
 
 **Objetivo:** Consolidar resultados dos 3 agents
 
 ### Tasks
 
-- [ ] **4.1** Implementar `scripts/normalize_results.py`
+- [x] **4.1** Implementar `scripts/normalize_results.py` ✅
   - Carregar 3 JSONs: `security.json`, `design.json`, `code.json`
   - Merge findings em lista única
   - Deduplicate por (file, line, category)
   - Sort por severity: critical > high > medium > low
   - Gerar `reviewResult.json` (formato canônico)
 
-- [ ] **4.2** Implementar `scripts/utils/finding_deduplicator.py`
+- [x] **4.2** Implementar `scripts/utils/finding_deduplicator.py` ✅
   - Hash de findings: `hash(file + line + category)`
-  - Lógica de similaridade (Levenshtein distance para descrições)
-  - Se similaridade > 80%, considerar duplicata
+  - Lógica de similaridade (SequenceMatcher para descrições)
+  - Se similaridade > 80%, considerar duplicata e fazer merge
+  - Tracking de múltiplos agents que encontraram o mesmo issue
 
-- [ ] **4.3** Adicionar step no pipeline
+- [x] **4.3** Adicionar step no pipeline ✅
   ```yaml
-  - script: python scripts/normalize_results.py --input-dir findings/ --output reviewResult.json
+  - script: |
+      python scripts/normalize_results.py \
+        --security-file $(Pipeline.Workspace)/security-findings/security.json \
+        --code-file $(Pipeline.Workspace)/code-findings/code.json \
+        --design-file $(Pipeline.Workspace)/design-findings/design.json \
+        --output reviewResult.json \
+        --similarity-threshold 0.80 \
+        --stats
   ```
 
 **Critérios de Aceitação:**
-- ✅ `reviewResult.json` contém findings únicos
-- ✅ Ordenação correta por severidade
-- ✅ Summary counts corretos (critical, high, medium, low)
+- ✅ `reviewResult.json` contém findings únicos (deduplicação funcional)
+- ✅ Ordenação correta por severidade (critical → low) e localização
+- ✅ Summary counts corretos (total, by_severity, by_agent, by_category)
+- ✅ Metadata com timestamp e estatísticas de deduplicação
+- ✅ Testes validados com fixtures mostrando 9 → 7 findings (2 duplicatas removidas)
 
 ---
 

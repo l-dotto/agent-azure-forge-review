@@ -1,0 +1,110 @@
+{
+  "metadata": {
+    "generated_at": "2026-01-03T10:44:25.061056Z",
+    "agents": [
+      "sentinel",
+      "atlas",
+      "forge"
+    ],
+    "total_findings": 7,
+    "duplicates_removed": 2
+  },
+  "summary": {
+    "total": 7,
+    "by_severity": {
+      "critical": 1,
+      "high": 1,
+      "medium": 3,
+      "low": 2,
+      "info": 0
+    },
+    "by_agent": {
+      "sentinel": 3,
+      "forge": 2,
+      "atlas": 2
+    },
+    "by_category": {
+      "sql_injection": 1,
+      "xss": 1,
+      "code_quality": 2,
+      "hardcoded_secret": 1,
+      "accessibility": 1,
+      "ux": 1
+    }
+  },
+  "findings": [
+    {
+      "agent": "sentinel",
+      "severity": "critical",
+      "category": "sql_injection",
+      "title": "SQL Injection: app.py:42",
+      "file_path": "src/app.py",
+      "line_number": 42,
+      "description": "User input from 'username' parameter is directly concatenated into SQL query without sanitization",
+      "recommendation": "Use parameterized queries with sqlalchemy's text() function or ORM query methods",
+      "exploit_scenario": "Attacker can craft input like `admin' OR '1'='1` to bypass authentication"
+    },
+    {
+      "agent": "sentinel",
+      "severity": "high",
+      "category": "xss",
+      "title": "XSS: templates/user_profile.html:15",
+      "file_path": "templates/user_profile.html",
+      "line_number": 15,
+      "description": "User-provided bio text is rendered without escaping",
+      "recommendation": "Use Flask's escape() function or enable auto-escaping in Jinja2",
+      "exploit_scenario": "Attacker can inject <script>alert(document.cookie)</script> to steal session tokens"
+    },
+    {
+      "agent": "forge",
+      "severity": "medium",
+      "category": "code_quality",
+      "title": "Missing Error Handling",
+      "file_path": "src/api/routes.py",
+      "line_number": 128,
+      "description": "Database operations are not wrapped in try-except blocks",
+      "recommendation": "Add proper error handling with specific exception types"
+    },
+    {
+      "agent": "sentinel",
+      "severity": "medium",
+      "category": "hardcoded_secret",
+      "title": "Hardcoded Secret: config.py:8",
+      "file_path": "src/config.py",
+      "line_number": 8,
+      "description": "API key is hardcoded in source code",
+      "recommendation": "Move secrets to environment variables or AWS Secrets Manager",
+      "confidence": 0.95
+    },
+    {
+      "agent": "atlas",
+      "severity": "medium",
+      "category": "accessibility",
+      "title": "Missing Alt Text",
+      "file_path": "templates/user_profile.html",
+      "line_number": 22,
+      "description": "Profile image missing alt attribute (WCAG 2.1 Level A violation)",
+      "recommendation": "Add alt='User profile photo' to img tag"
+    },
+    {
+      "agent": "forge",
+      "severity": "low",
+      "category": "code_quality",
+      "title": "Magic Number",
+      "file_path": "src/utils/cache.py",
+      "line_number": 55,
+      "description": "Magic number 3600 should be a named constant",
+      "recommendation": "Define CACHE_TTL_SECONDS = 3600 at module level"
+    },
+    {
+      "agent": "atlas",
+      "severity": "low",
+      "category": "ux",
+      "title": "Inconsistent Button Styling",
+      "file_path": "static/css/buttons.css",
+      "line_number": 10,
+      "description": "Primary button uses different padding than design system",
+      "recommendation": "Update to match design tokens: padding: 12px 24px"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "agent": "sentinel",
+    "severity": "critical",
+    "category": "sql_injection",
+    "title": "SQL Injection: app.py:42",
+    "file_path": "src/app.py",
+    "line_number": 42,
+    "description": "User input from 'username' parameter is directly concatenated into SQL query without sanitization",
+    "recommendation": "Use parameterized queries with sqlalchemy's text() function or ORM query methods",
+    "exploit_scenario": "Attacker can craft input like `admin' OR '1'='1` to bypass authentication"
+  },
+  {
+    "agent": "sentinel",
+    "severity": "high",
+    "category": "xss",
+    "title": "XSS: templates/user_profile.html:15",
+    "file_path": "templates/user_profile.html",
+    "line_number": 15,
+    "description": "User-provided bio text is rendered without escaping",
+    "recommendation": "Use Flask's escape() function or enable auto-escaping in Jinja2",
+    "exploit_scenario": "Attacker can inject <script>alert(document.cookie)</script> to steal session tokens"
+  },
+  {
+    "agent": "sentinel",
+    "severity": "medium",
+    "category": "hardcoded_secret",
+    "title": "Hardcoded Secret: config.py:8",
+    "file_path": "src/config.py",
+    "line_number": 8,
+    "description": "API key is hardcoded in source code",
+    "recommendation": "Move secrets to environment variables or AWS Secrets Manager",
+    "confidence": 0.95
+  }
+]

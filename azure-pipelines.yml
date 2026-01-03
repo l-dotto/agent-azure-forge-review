@@ -142,19 +142,32 @@ stages:
 
           - download: current
             artifact: security-findings
-
-          - download: current
-            artifact: design-findings
+            displayName: 'Download Security Findings'
 
           - download: current
             artifact: code-findings
+            displayName: 'Download Code Findings'
+
+          # Design findings (optional, may not exist if disabled)
+          - script: |
+              if [ -d "$(Pipeline.Workspace)/design-findings" ]; then
+                echo "Design findings available"
+              else
+                echo "Design findings not available (agent disabled)"
+                mkdir -p $(Pipeline.Workspace)/design-findings
+                echo '[]' > $(Pipeline.Workspace)/design-findings/design.json
+              fi
+            displayName: 'Check Design Findings'
 
           - script: |
-              echo "Normalization will be implemented in Phase 4"
-              echo "Consolidating findings from all agents..."
-              mkdir -p findings
-              echo '{"summary": {"total": 0, "critical": 0, "high": 0, "medium": 0, "low": 0}, "findings": []}' > reviewResult.json
-            displayName: 'Normalize Results'
+              python scripts/normalize_results.py \
+                --security-file $(Pipeline.Workspace)/security-findings/security.json \
+                --code-file $(Pipeline.Workspace)/code-findings/code.json \
+                --design-file $(Pipeline.Workspace)/design-findings/design.json \
+                --output reviewResult.json \
+                --similarity-threshold 0.80 \
+                --stats
+            displayName: 'Normalize and Deduplicate Findings'
 
           - publish: reviewResult.json
             artifact: review-result

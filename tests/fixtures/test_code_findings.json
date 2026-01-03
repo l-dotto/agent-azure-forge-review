@@ -1,0 +1,42 @@
+[
+  {
+    "agent": "forge",
+    "severity": "critical",
+    "category": "sql_injection",
+    "title": "SQL Injection Risk",
+    "file_path": "src/app.py",
+    "line_number": 42,
+    "description": "User input from username parameter is directly concatenated into SQL query without proper sanitization",
+    "recommendation": "Use parameterized queries with sqlalchemy or ORM query methods"
+  },
+  {
+    "agent": "forge",
+    "severity": "medium",
+    "category": "code_quality",
+    "title": "Missing Error Handling",
+    "file_path": "src/api/routes.py",
+    "line_number": 128,
+    "description": "Database operations are not wrapped in try-except blocks",
+    "recommendation": "Add proper error handling with specific exception types"
+  },
+  {
+    "agent": "forge",
+    "severity": "low",
+    "category": "code_quality",
+    "title": "Magic Number",
+    "file_path": "src/utils/cache.py",
+    "line_number": 55,
+    "description": "Magic number 3600 should be a named constant",
+    "recommendation": "Define CACHE_TTL_SECONDS = 3600 at module level"
+  },
+  {
+    "agent": "forge",
+    "severity": "high",
+    "category": "xss",
+    "title": "Cross-Site Scripting Vulnerability",
+    "file_path": "templates/user_profile.html",
+    "line_number": 15,
+    "description": "User-provided bio text is rendered without proper escaping allowing script injection",
+    "recommendation": "Use Flask escape function or enable Jinja2 auto-escaping"
+  }
+]
